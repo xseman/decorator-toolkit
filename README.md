@@ -7,8 +7,9 @@
 <p align="center">
 	<a href="#features">Features</a> •
 	<a href="#installation">Installation</a> •
+	<a href="#documentation">Documentation</a> •
 	<a href="#usage">Usage</a> •
-	<a href="#available-decorators">Available Decorators</a> •
+	<a href="#available-decorators">Available Decorators</a>
 </p>
 
 ## Features
@@ -167,25 +168,31 @@ import {
 } from "decorator-toolkit/timeout";
 ```
 
+## Documentation
+
+Start with [docs/README.md](docs/README.md) for grouped references and usage
+patterns. The decorator list below links to dedicated pages with current TC39
+examples adapted from the legacy site.
+
 ## Available Decorators
 
-| Decorator        | Purpose                                                                  |
-| ---------------- | ------------------------------------------------------------------------ |
-| `after`          | Runs a hook after a method call, optionally waiting for async resolution |
-| `before`         | Runs a hook before a method call, optionally waiting for async hooks     |
-| `cancelPrevious` | Rejects the previous pending async invocation with `CanceledPromise`     |
-| `debounce`       | Coalesces rapid method calls into a later single execution               |
-| `delegate`       | Shares one in-flight async invocation across callers with the same key   |
-| `delay`          | Schedules method execution after a fixed delay                           |
-| `execTime`       | Reports method execution duration                                        |
-| `memoize`        | Caches synchronous method results                                        |
-| `memoizeAsync`   | Caches async results and deduplicates pending async calls                |
-| `multiDispatch`  | Starts multiple async attempts and resolves on the first success         |
-| `onError`        | Forwards thrown or rejected errors to a handler                          |
-| `rateLimit`      | Limits how many calls may happen within a configured time window         |
-| `readonly`       | Makes an accessor write-protected                                        |
-| `refreshable`    | Refreshes an accessor from an async data provider on an interval         |
-| `retry`          | Retries async methods using a fixed or custom delay strategy             |
-| `throttle`       | Limits how often a method can run                                        |
-| `throttleAsync`  | Queues async calls and executes them with bounded concurrency            |
-| `timeout`        | Rejects slow async methods with `TimeoutError`                           |
+| Decorator                                            | Purpose                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| [after](docs/decorators/after.md)                    | Runs a hook after a method call, optionally waiting for async resolution |
+| [before](docs/decorators/before.md)                  | Runs a hook before a method call, optionally waiting for async hooks     |
+| [cancelPrevious](docs/decorators/cancel-previous.md) | Rejects the previous pending async invocation with `CanceledPromise`     |
+| [debounce](docs/decorators/debounce.md)              | Coalesces rapid method calls into a later single execution               |
+| [delegate](docs/decorators/delegate.md)              | Shares one in-flight async invocation across callers with the same key   |
+| [delay](docs/decorators/delay.md)                    | Schedules method execution after a fixed delay                           |
+| [execTime](docs/decorators/exec-time.md)             | Reports method execution duration                                        |
+| [memoize](docs/decorators/memoize.md)                | Caches synchronous method results                                        |
+| [memoizeAsync](docs/decorators/memoize-async.md)     | Caches async results and deduplicates pending async calls                |
+| [multiDispatch](docs/decorators/multi-dispatch.md)   | Starts multiple async attempts and resolves on the first success         |
+| [onError](docs/decorators/on-error.md)               | Forwards thrown or rejected errors to a handler                          |
+| [rateLimit](docs/decorators/rate-limit.md)           | Limits how many calls may happen within a configured time window         |
+| [readonly](docs/decorators/readonly.md)              | Makes an accessor write-protected                                        |
+| [refreshable](docs/decorators/refreshable.md)        | Refreshes an accessor from an async data provider on an interval         |
+| [retry](docs/decorators/retry.md)                    | Retries async methods using a fixed or custom delay strategy             |
+| [throttle](docs/decorators/throttle.md)              | Limits how often a method can run                                        |
+| [throttleAsync](docs/decorators/throttle-async.md)   | Queues async calls and executes them with bounded concurrency            |
+| [timeout](docs/decorators/timeout.md)                | Rejects slow async methods with `TimeoutError`                           |
