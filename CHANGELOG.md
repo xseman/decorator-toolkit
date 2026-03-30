@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/xseman/decorator-toolkit/compare/v0.1.0...v0.1.1) (2026-03-30)
+
+
+### Maintenance
+
+* add repository field to package.json ([4fefb95](https://github.com/xseman/decorator-toolkit/commit/4fefb950bede16da38962accf63c29506fd343b9))
+
 ## 0.1.0 (2026-03-30)
 
 
