@@ -4,12 +4,17 @@
 	"type": "module",
 	"version": "0.1.0",
 	"license": "MIT",
+	"funding": "https://github.com/sponsors/xseman",
 	"homepage": "https://github.com/xseman/decorator-toolkit",
 	"keywords": [
 		"typescript",
 		"decorator",
 		"tc39"
 	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/xseman/decorator-toolkit"
+	},
 	"scripts": {
 		"build": "tsc --build",
 		"fmt": "dprint fmt",

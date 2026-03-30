@@ -5,6 +5,15 @@ on:
         branches:
             - master
     workflow_dispatch:
+        inputs:
+            npm_release:
+                description: "Publish npm package"
+                type: boolean
+                default: false
+            npm_tag:
+                description: "Tag or ref to publish from (e.g., v0.1.0)"
+                type: string
+                required: false
 
 permissions:
     contents: write
@@ -30,13 +39,19 @@ jobs:
     publish:
         name: Publish To npm
         needs: release-please
-        if: ${{ needs.release-please.outputs.release_created }}
+        if: ${{ (github.event_name == 'push' && needs.release-please.outputs.release_created) || (github.event_name == 'workflow_dispatch' && inputs.npm_release == true) }}
         runs-on: ubuntu-latest
         permissions:
             contents: read
             id-token: write
         steps:
             - uses: actions/checkout@v6
+              if: ${{ github.event_name == 'push' || inputs.npm_tag == '' }}
+
+            - uses: actions/checkout@v6
+              if: ${{ github.event_name == 'workflow_dispatch' && inputs.npm_tag != '' }}
+              with:
+                  ref: ${{ inputs.npm_tag }}
 
             - uses: actions/setup-node@v6
               with:
