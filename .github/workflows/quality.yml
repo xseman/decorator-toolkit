@@ -1,0 +1,65 @@
+name: Quality
+
+on:
+    pull_request:
+        branches:
+            - master
+        paths:
+            - "src/**"
+            - "package.json"
+            - "tsconfig.json"
+            - "dprint.json"
+            - "bunfig.toml"
+            - ".github/.release-config.json"
+            - ".github/.release-manifest.json"
+            - ".github/workflows/quality.yml"
+            - ".github/workflows/release.yml"
+    push:
+        branches:
+            - master
+        paths:
+            - "src/**"
+            - "package.json"
+            - "tsconfig.json"
+            - "dprint.json"
+            - "bunfig.toml"
+            - ".github/.release-config.json"
+            - ".github/.release-manifest.json"
+            - ".github/workflows/quality.yml"
+            - ".github/workflows/release.yml"
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: install
+              run: bun install
+
+            - name: typecheck
+              run: bun run typecheck
+
+            - name: test
+              run: bun run test
+
+    fmt:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: install
+              run: bun install
+
+            - name: format check
+              run: bun run fmt:check

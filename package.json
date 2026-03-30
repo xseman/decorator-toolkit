@@ -1,0 +1,152 @@
+{
+	"name": "decorator-toolkit",
+	"description": "Modern TC39 decorators for reducing repetitive code.",
+	"type": "module",
+	"version": "0.1.0",
+	"license": "MIT",
+	"homepage": "https://github.com/xseman/decorator-toolkit",
+	"keywords": [
+		"typescript",
+		"decorator",
+		"tc39"
+	],
+	"scripts": {
+		"build": "tsc --build",
+		"fmt": "dprint fmt",
+		"fmt:check": "dprint check",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test src/ --coverage --coverage-reporter=text --coverage-reporter=lcov --concurrent",
+		"test:watch": "bun test src/ --watch --coverage --concurrent"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/node": "latest",
+		"dprint": "~0.52.0",
+		"typescript": "~5.9.3"
+	},
+	"sideEffects": false,
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"types": "./lib/index.d.ts",
+			"bun": "./src/index.ts",
+			"import": "./lib/index.js",
+			"require": "./lib/index.js"
+		},
+		"./after": {
+			"types": "./lib/after/index.d.ts",
+			"bun": "./src/after/index.ts",
+			"import": "./lib/after/index.js",
+			"require": "./lib/after/index.js"
+		},
+		"./before": {
+			"types": "./lib/before/index.d.ts",
+			"bun": "./src/before/index.ts",
+			"import": "./lib/before/index.js",
+			"require": "./lib/before/index.js"
+		},
+		"./cancel-previous": {
+			"types": "./lib/cancel-previous/index.d.ts",
+			"bun": "./src/cancel-previous/index.ts",
+			"import": "./lib/cancel-previous/index.js",
+			"require": "./lib/cancel-previous/index.js"
+		},
+		"./debounce": {
+			"types": "./lib/debounce/index.d.ts",
+			"bun": "./src/debounce/index.ts",
+			"import": "./lib/debounce/index.js",
+			"require": "./lib/debounce/index.js"
+		},
+		"./delegate": {
+			"types": "./lib/delegate/index.d.ts",
+			"bun": "./src/delegate/index.ts",
+			"import": "./lib/delegate/index.js",
+			"require": "./lib/delegate/index.js"
+		},
+		"./delay": {
+			"types": "./lib/delay/index.d.ts",
+			"bun": "./src/delay/index.ts",
+			"import": "./lib/delay/index.js",
+			"require": "./lib/delay/index.js"
+		},
+		"./exec-time": {
+			"types": "./lib/exec-time/index.d.ts",
+			"bun": "./src/exec-time/index.ts",
+			"import": "./lib/exec-time/index.js",
+			"require": "./lib/exec-time/index.js"
+		},
+		"./memoize": {
+			"types": "./lib/memoize/index.d.ts",
+			"bun": "./src/memoize/index.ts",
+			"import": "./lib/memoize/index.js",
+			"require": "./lib/memoize/index.js"
+		},
+		"./memoize-async": {
+			"types": "./lib/memoize-async/index.d.ts",
+			"bun": "./src/memoize-async/index.ts",
+			"import": "./lib/memoize-async/index.js",
+			"require": "./lib/memoize-async/index.js"
+		},
+		"./multi-dispatch": {
+			"types": "./lib/multi-dispatch/index.d.ts",
+			"bun": "./src/multi-dispatch/index.ts",
+			"import": "./lib/multi-dispatch/index.js",
+			"require": "./lib/multi-dispatch/index.js"
+		},
+		"./on-error": {
+			"types": "./lib/on-error/index.d.ts",
+			"bun": "./src/on-error/index.ts",
+			"import": "./lib/on-error/index.js",
+			"require": "./lib/on-error/index.js"
+		},
+		"./rate-limit": {
+			"types": "./lib/rate-limit/index.d.ts",
+			"bun": "./src/rate-limit/index.ts",
+			"import": "./lib/rate-limit/index.js",
+			"require": "./lib/rate-limit/index.js"
+		},
+		"./readonly": {
+			"types": "./lib/readonly/index.d.ts",
+			"bun": "./src/readonly/index.ts",
+			"import": "./lib/readonly/index.js",
+			"require": "./lib/readonly/index.js"
+		},
+		"./refreshable": {
+			"types": "./lib/refreshable/index.d.ts",
+			"bun": "./src/refreshable/index.ts",
+			"import": "./lib/refreshable/index.js",
+			"require": "./lib/refreshable/index.js"
+		},
+		"./retry": {
+			"types": "./lib/retry/index.d.ts",
+			"bun": "./src/retry/index.ts",
+			"import": "./lib/retry/index.js",
+			"require": "./lib/retry/index.js"
+		},
+		"./throttle": {
+			"types": "./lib/throttle/index.d.ts",
+			"bun": "./src/throttle/index.ts",
+			"import": "./lib/throttle/index.js",
+			"require": "./lib/throttle/index.js"
+		},
+		"./throttle-async": {
+			"types": "./lib/throttle-async/index.d.ts",
+			"bun": "./src/throttle-async/index.ts",
+			"import": "./lib/throttle-async/index.js",
+			"require": "./lib/throttle-async/index.js"
+		},
+		"./timeout": {
+			"types": "./lib/timeout/index.d.ts",
+			"bun": "./src/timeout/index.ts",
+			"import": "./lib/timeout/index.js",
+			"require": "./lib/timeout/index.js"
+		}
+	},
+	"files": [
+		"lib/**/*.js",
+		"lib/**/*.d.ts",
+		"!lib/**/*_test*",
+		"src/**/*.ts",
+		"!src/**/*_test.ts"
+	]
+}
