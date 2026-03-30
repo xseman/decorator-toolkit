@@ -27,6 +27,8 @@
 		"**/*.{ts,js,json,md,yml,yaml,html}"
 	],
 	"excludes": [
+		"CHANGELOG.md",
+		".github/**",
 		"**/node_modules",
 		"**/*-lock.json",
 		"**/tsconfig.json",
