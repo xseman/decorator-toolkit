@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/xseman/decorator-toolkit/compare/v0.1.1...v0.1.2) (2026-03-31)
+
+
+### Features
+
+* add bind and bindAll decorators ([12444e4](https://github.com/xseman/decorator-toolkit/commit/12444e446ee00859cc4e60c876258a7756f64fe3))
+
+
+### Maintenance
+
+* **package:** fix license and dependencies versions ([c34c2b0](https://github.com/xseman/decorator-toolkit/commit/c34c2b0cc6b4f00f4b974e956aa10fc127b0dc93))
+
 ## [0.1.1](https://github.com/xseman/decorator-toolkit/compare/v0.1.0...v0.1.1) (2026-03-30)
 
 
