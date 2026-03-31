@@ -1,5 +1,7 @@
 export { after, type AfterConfig, type AfterFunc, type AfterParams } from "./after/index.js";
 export { before, type BeforeConfig } from "./before/index.js";
+export { bindAll } from "./bind-all/index.js";
+export { bind } from "./bind/index.js";
 export { CanceledPromise, cancelPrevious } from "./cancel-previous/index.js";
 export type { AsyncMethod, Method, UnboxPromise } from "./common/types.js";
 export { debounce } from "./debounce/index.js";

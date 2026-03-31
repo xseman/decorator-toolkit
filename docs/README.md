@@ -13,8 +13,13 @@ Use decorator syntax with TypeScript 5+ standard decorators.
 
 - [after](decorators/after.md)
 - [before](decorators/before.md)
+- [bind](decorators/bind.md)
 - [execTime](decorators/exec-time.md)
 - [onError](decorators/on-error.md)
+
+### Class decorators
+
+- [bindAll](decorators/bind-all.md)
 
 ### Scheduling and flow control
 
@@ -42,6 +47,7 @@ Use decorator syntax with TypeScript 5+ standard decorators.
 ## Notes
 
 - Method decorators in this package apply to methods only.
+- `bindAll` applies to classes.
 - `readonly` and `refreshable` apply to `accessor` members only.
 - Private class members are not supported.
 - Root imports and subpath imports are both supported. The examples in this

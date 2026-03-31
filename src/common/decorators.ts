@@ -16,6 +16,16 @@ export function assertMethodDecorator(
 	}
 }
 
+export function assertClassDecorator(
+	decoratorName: string,
+	value: unknown,
+	context: { kind: string; },
+): asserts value is AnyFunction {
+	if (context.kind !== "class" || typeof value !== "function") {
+		throw new Error(`@${decoratorName} is applicable only on classes.`);
+	}
+}
+
 export function assertAccessorDecorator(
 	decoratorName: string,
 	value: unknown,

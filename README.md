@@ -54,9 +54,9 @@ features and supports standard decorators:
 ```
 
 > [!NOTE]
-> Method decorators in this package apply to methods only, and accessor
-> decorators apply to `accessor` members only. Private members are not
-> supported.
+> Method decorators in this package apply to methods only, `bindAll` applies to
+> classes, and accessor decorators apply to `accessor` members only. Private
+> members are not supported.
 
 ### Basic Example
 
@@ -180,6 +180,8 @@ examples adapted from the legacy site.
 | ---------------------------------------------------- | ------------------------------------------------------------------------ |
 | [after](docs/decorators/after.md)                    | Runs a hook after a method call, optionally waiting for async resolution |
 | [before](docs/decorators/before.md)                  | Runs a hook before a method call, optionally waiting for async hooks     |
+| [bind](docs/decorators/bind.md)                      | Binds a method to its instance or class during initialization            |
+| [bindAll](docs/decorators/bind-all.md)               | Binds all public instance methods declared on a class                    |
 | [cancelPrevious](docs/decorators/cancel-previous.md) | Rejects the previous pending async invocation with `CanceledPromise`     |
 | [debounce](docs/decorators/debounce.md)              | Coalesces rapid method calls into a later single execution               |
 | [delegate](docs/decorators/delegate.md)              | Shares one in-flight async invocation across callers with the same key   |

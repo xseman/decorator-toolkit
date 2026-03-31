@@ -54,6 +54,18 @@
 			"import": "./lib/before/index.js",
 			"require": "./lib/before/index.js"
 		},
+		"./bind": {
+			"types": "./lib/bind/index.d.ts",
+			"bun": "./src/bind/index.ts",
+			"import": "./lib/bind/index.js",
+			"require": "./lib/bind/index.js"
+		},
+		"./bind-all": {
+			"types": "./lib/bind-all/index.d.ts",
+			"bun": "./src/bind-all/index.ts",
+			"import": "./lib/bind-all/index.js",
+			"require": "./lib/bind-all/index.js"
+		},
 		"./cancel-previous": {
 			"types": "./lib/cancel-previous/index.d.ts",
 			"bun": "./src/cancel-previous/index.ts",
