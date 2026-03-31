@@ -20,6 +20,21 @@ describe("bind", () => {
 		}).toThrow("@bind is applicable only on methods.");
 	});
 
+	test("throws when used on a private method", () => {
+		const invalidBind: any = bind();
+
+		expect(() => {
+			class TestSubject {
+				@invalidBind
+				#foo(): string {
+					return "nope";
+				}
+			}
+
+			return TestSubject;
+		}).toThrow("@bind does not support private hash methods.");
+	});
+
 	test("binds detached instance methods", () => {
 		class TestSubject {
 			constructor(private readonly _value: number) {}

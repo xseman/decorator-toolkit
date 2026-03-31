@@ -11,8 +11,12 @@ export function assertMethodDecorator(
 	value: unknown,
 	context: RuntimeDecoratorContext,
 ): asserts value is AnyFunction {
-	if (context.kind !== "method" || typeof value !== "function" || context.private) {
+	if (context.kind !== "method" || typeof value !== "function") {
 		throw new Error(`@${decoratorName} is applicable only on methods.`);
+	}
+
+	if (context.private) {
+		throw new Error(`@${decoratorName} does not support private hash methods.`);
 	}
 }
 
