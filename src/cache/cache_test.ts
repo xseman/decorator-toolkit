@@ -6,14 +6,14 @@ import {
 } from "bun:test";
 
 import { sleep } from "../common/utils.js";
-import { memoize } from "./memoize.js";
+import { cache } from "./cache.js";
 
-describe("memoize", () => {
+describe("cache", () => {
 	test("caches method results and expires entries", async () => {
 		class TestSubject {
 			value = 3;
 
-			@memoize(10)
+			@cache(10)
 			foo(x: number, y: number): number {
 				return this.goo(x, y);
 			}
@@ -44,23 +44,23 @@ describe("memoize", () => {
 	});
 
 	test("throws when used on a field", () => {
-		const invalidMemoize: any = memoize;
+		const invalidCache: any = cache;
 
 		expect(() => {
 			class TestSubject {
-				@invalidMemoize
+				@invalidCache
 				boo = "nope";
 			}
 
 			return TestSubject;
-		}).toThrow("@memoize is applicable only on methods.");
+		}).toThrow("@cache is applicable only on methods.");
 	});
 
-	test("uses a provided cache", async () => {
-		const cache = new Map<string, number>();
+	test("uses a provided store", async () => {
+		const store = new Map<string, number>();
 
 		class TestSubject {
-			@memoize<TestSubject, number>({ expirationTimeMs: 30, cache })
+			@cache<TestSubject, number>({ store, ttlMs: 30 })
 			foo(): number {
 				return this.goo();
 			}
@@ -77,7 +77,7 @@ describe("memoize", () => {
 		subject.foo();
 		expect(spy.mock.calls).toHaveLength(1);
 
-		cache.delete("[]");
+		store.delete("[]");
 		subject.foo();
 		expect(spy.mock.calls).toHaveLength(2);
 	});
@@ -91,7 +91,7 @@ describe("memoize", () => {
 				return `${x}_${y}`;
 			}
 
-			@memoize<TestSubject, string, [string, string]>({
+			@cache<TestSubject, string, [string, string]>({
 				keyResolver: (x, y) => {
 					mapperCalls.push(`fn:${x}_${y}`);
 					return `${x}_${y}`;
@@ -101,7 +101,7 @@ describe("memoize", () => {
 				return this.goo(x, y);
 			}
 
-			@memoize<TestSubject, string, [string, string]>({ keyResolver: "mapper" })
+			@cache<TestSubject, string, [string, string]>({ keyResolver: "mapper" })
 			fooWithNamedMapper(x: string, y: string): string {
 				return this.goo(x, y);
 			}
@@ -123,11 +123,11 @@ describe("memoize", () => {
 		expect(mapperCalls).toEqual(["fn:x_y", "fn:x_y", "x_y", "x_y"]);
 	});
 
-	test("does not clean the default cache without expiration", async () => {
-		const cache = new Map<string, number>();
+	test("does not clean the default store without ttl", async () => {
+		const store = new Map<string, number>();
 
 		class TestSubject {
-			@memoize<TestSubject, number>({ cache })
+			@cache<TestSubject, number>({ store })
 			foo(): number {
 				return 1;
 			}
@@ -135,16 +135,16 @@ describe("memoize", () => {
 
 		const subject = new TestSubject();
 		subject.foo();
-		expect(cache.size).toBe(1);
+		expect(store.size).toBe(1);
 		await sleep(50);
-		expect(cache.size).toBe(1);
+		expect(store.size).toBe(1);
 	});
 
-	test("keeps default caches isolated per instance", () => {
+	test("keeps default stores isolated per instance", () => {
 		class TestSubject {
 			calls = 0;
 
-			@memoize
+			@cache
 			foo(x: number): number {
 				this.calls += 1;
 				return x + this.calls;

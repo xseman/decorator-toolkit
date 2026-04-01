@@ -7,16 +7,16 @@ import {
 
 import { sleep } from "../common/utils.js";
 import {
-	type AsyncCache,
-	memoizeAsync,
-} from "./memoize-async.js";
+	type AsyncCacheStore,
+	cacheAsync,
+} from "./cache-async.js";
 
-describe("memoizeAsync", () => {
+describe("cacheAsync", () => {
 	test("caches async method results and expires entries", async () => {
 		class TestSubject {
 			value = 3;
 
-			@memoizeAsync(10)
+			@cacheAsync(10)
 			foo(x: number, y: number): Promise<number> {
 				return this.goo(x, y);
 			}
@@ -55,7 +55,7 @@ describe("memoizeAsync", () => {
 				return `${x}_${y}`;
 			}
 
-			@memoizeAsync<TestSubject, string, [string, string]>({
+			@cacheAsync<TestSubject, string, [string, string]>({
 				keyResolver: (x, y) => {
 					mapperCalls.push(`fn:${x}_${y}`);
 					return `${x}_${y}`;
@@ -65,7 +65,7 @@ describe("memoizeAsync", () => {
 				return this.goo(x, y);
 			}
 
-			@memoizeAsync<TestSubject, string, [string, string]>({ keyResolver: "mapper" })
+			@cacheAsync<TestSubject, string, [string, string]>({ keyResolver: "mapper" })
 			fooWithNamedMapper(x: string, y: string): Promise<string> {
 				return this.goo(x, y);
 			}
@@ -88,21 +88,21 @@ describe("memoizeAsync", () => {
 	});
 
 	test("throws when used on a field", () => {
-		const invalidMemoizeAsync: any = memoizeAsync;
+		const invalidCacheAsync: any = cacheAsync;
 
 		expect(() => {
 			class TestSubject {
-				@invalidMemoizeAsync
+				@invalidCacheAsync
 				boo = "nope";
 			}
 
 			return TestSubject;
-		}).toThrow("@memoizeAsync is applicable only on methods.");
+		}).toThrow("@cacheAsync is applicable only on methods.");
 	});
 
-	test("removes rejected promises from the pending cache", async () => {
+	test("removes rejected promises from the pending store", async () => {
 		class TestSubject {
-			@memoizeAsync(20)
+			@cacheAsync(20)
 			foo(): Promise<string> {
 				return this.goo();
 			}
@@ -127,11 +127,11 @@ describe("memoizeAsync", () => {
 		expect(spy.mock.calls).toHaveLength(2);
 	});
 
-	test("uses a provided synchronous cache", async () => {
-		const cache = new Map<string, number>();
+	test("uses a provided synchronous store", async () => {
+		const store = new Map<string, number>();
 
 		class TestSubject {
-			@memoizeAsync<TestSubject, number>({ expirationTimeMs: 30, cache })
+			@cacheAsync<TestSubject, number>({ store, ttlMs: 30 })
 			foo(): Promise<number> {
 				return this.goo();
 			}
@@ -147,15 +147,15 @@ describe("memoizeAsync", () => {
 		await subject.foo();
 		expect(spy.mock.calls).toHaveLength(1);
 
-		cache.delete("[]");
+		store.delete("[]");
 		await subject.foo();
 		expect(spy.mock.calls).toHaveLength(2);
 	});
 
-	test("uses an async cache implementation", async () => {
+	test("uses an async store implementation", async () => {
 		const map = new Map<string, number>();
 
-		const cache: AsyncCache<number> = {
+		const store: AsyncCacheStore<number> = {
 			delete: async (key: string) => {
 				map.delete(key);
 			},
@@ -167,7 +167,7 @@ describe("memoizeAsync", () => {
 		};
 
 		class TestSubject {
-			@memoizeAsync<TestSubject, number>({ expirationTimeMs: 30, cache })
+			@cacheAsync<TestSubject, number>({ store, ttlMs: 30 })
 			foo(): Promise<number> {
 				return this.goo();
 			}
@@ -183,13 +183,13 @@ describe("memoizeAsync", () => {
 		await subject.foo();
 		expect(spy.mock.calls).toHaveLength(1);
 
-		await cache.delete("[]");
+		await store.delete("[]");
 		await subject.foo();
 		expect(spy.mock.calls).toHaveLength(2);
 	});
 
-	test("propagates async cache errors", async () => {
-		const failingHasCache: AsyncCache<number> = {
+	test("propagates async store errors", async () => {
+		const failingHasStore: AsyncCacheStore<number> = {
 			delete: async () => undefined,
 			get: async () => undefined,
 			has: async () => {
@@ -198,7 +198,7 @@ describe("memoizeAsync", () => {
 			set: async () => undefined,
 		};
 
-		const failingGetCache: AsyncCache<number> = {
+		const failingGetStore: AsyncCacheStore<number> = {
 			delete: async () => undefined,
 			get: async () => {
 				throw new Error("error");
@@ -208,14 +208,14 @@ describe("memoizeAsync", () => {
 		};
 
 		class HasTestSubject {
-			@memoizeAsync<HasTestSubject, number>({ cache: failingHasCache })
+			@cacheAsync<HasTestSubject, number>({ store: failingHasStore })
 			foo(): Promise<number> {
 				return Promise.resolve(1);
 			}
 		}
 
 		class GetTestSubject {
-			@memoizeAsync<GetTestSubject, number>({ cache: failingGetCache })
+			@cacheAsync<GetTestSubject, number>({ store: failingGetStore })
 			foo(): Promise<number> {
 				return Promise.resolve(1);
 			}
@@ -236,11 +236,11 @@ describe("memoizeAsync", () => {
 		}
 	});
 
-	test("keeps default caches isolated per instance", async () => {
+	test("keeps default stores isolated per instance", async () => {
 		class TestSubject {
 			calls = 0;
 
-			@memoizeAsync
+			@cacheAsync
 			async foo(x: number): Promise<number> {
 				this.calls += 1;
 				return x + this.calls;
