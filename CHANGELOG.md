@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3](https://github.com/xseman/decorator-toolkit/compare/v0.1.2...v0.1.3) (2026-04-01)
+
+
+### Features
+
+* support bare syntax for default-behavior decorators ([e00c7f9](https://github.com/xseman/decorator-toolkit/commit/e00c7f97d199ea39af46113b247bf82c68a60eac))
+
+
+### Testing
+
+* **bind:** add test for private method usage ([7967605](https://github.com/xseman/decorator-toolkit/commit/7967605416e870bd86c85a2de44f268937d57c0a))
+
 ## [0.1.2](https://github.com/xseman/decorator-toolkit/compare/v0.1.1...v0.1.2) (2026-03-31)
 
 
