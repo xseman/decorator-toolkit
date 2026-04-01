@@ -8,7 +8,7 @@ import { bind } from "./bind.js";
 
 describe("bind", () => {
 	test("throws when used on a field", () => {
-		const invalidBind: any = bind();
+		const invalidBind: any = bind;
 
 		expect(() => {
 			class TestSubject {
@@ -39,7 +39,7 @@ describe("bind", () => {
 		class TestSubject {
 			constructor(private readonly _value: number) {}
 
-			@bind()
+			@bind
 			foo(): number {
 				return this._value;
 			}

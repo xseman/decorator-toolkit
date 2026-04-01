@@ -19,6 +19,8 @@ memoize<This, Value, Args>(
 		expirationTimeMs?: number;
 	},
 )
+
+// Default behavior: @memoize or @memoize()
 ```
 
 ## Example
@@ -44,6 +46,8 @@ class UserNames {
 ## Notes
 
 - `memoize` is a method decorator.
+- With the default cache settings, both `@memoize` and `@memoize()` are
+  supported.
 - Passing a number is shorthand for `expirationTimeMs`.
 - By default, keys are derived from `JSON.stringify(args)` and caches are scoped
   per instance.

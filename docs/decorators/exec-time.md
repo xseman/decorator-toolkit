@@ -19,6 +19,8 @@ execTime<This, Result, Args>(
 		execTime: number;
 	}) => unknown),
 )
+
+// Default behavior: @execTime or @execTime()
 ```
 
 ## Example
@@ -42,6 +44,8 @@ class ReportsService {
 ## Notes
 
 - `execTime` is a method decorator.
+- With the default `console.info` reporter, both `@execTime` and `@execTime()`
+  are supported.
 - The reporter receives `args`, the final `result`, and `execTime` in
   milliseconds.
 - Without a reporter, the decorator logs the elapsed time with `console.info`.

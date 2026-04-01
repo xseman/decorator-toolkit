@@ -13,7 +13,7 @@ import {
 
 describe("exec-time", () => {
 	test("throws when used on a field", () => {
-		const invalidExecTime: any = execTime();
+		const invalidExecTime: any = execTime;
 
 		expect(() => {
 			class TestSubject {
@@ -74,7 +74,7 @@ describe("exec-time", () => {
 		const logSpy = spyOn(console, "info");
 
 		class TestSubject {
-			@execTime()
+			@execTime
 			foo(x: string): string {
 				return `${x}b`;
 			}

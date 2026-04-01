@@ -8,7 +8,7 @@ import { bindAll } from "./bind-all.js";
 
 describe("bindAll", () => {
 	test("throws when used on a method", () => {
-		const invalidBindAll: any = bindAll();
+		const invalidBindAll: any = bindAll;
 
 		expect(() => {
 			class TestSubject {
@@ -22,7 +22,7 @@ describe("bindAll", () => {
 	});
 
 	test("binds detached instance methods declared on the class", () => {
-		@bindAll()
+		@bindAll
 		class TestSubject {
 			constructor(private readonly _value: number) {}
 

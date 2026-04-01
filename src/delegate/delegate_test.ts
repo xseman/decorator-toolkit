@@ -9,7 +9,7 @@ import { delegate } from "./delegate.js";
 
 describe("delegate", () => {
 	test("throws when used on a field", () => {
-		const invalidDelegate: any = delegate();
+		const invalidDelegate: any = delegate;
 
 		expect(() => {
 			class TestSubject {
@@ -25,7 +25,7 @@ describe("delegate", () => {
 		let counter = 0;
 
 		class TestSubject {
-			@delegate()
+			@delegate
 			async foo(): Promise<number> {
 				counter += 1;
 				await sleep(20);

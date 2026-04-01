@@ -44,7 +44,7 @@ describe("memoize", () => {
 	});
 
 	test("throws when used on a field", () => {
-		const invalidMemoize: any = memoize(50);
+		const invalidMemoize: any = memoize;
 
 		expect(() => {
 			class TestSubject {
@@ -144,7 +144,7 @@ describe("memoize", () => {
 		class TestSubject {
 			calls = 0;
 
-			@memoize()
+			@memoize
 			foo(x: number): number {
 				this.calls += 1;
 				return x + this.calls;

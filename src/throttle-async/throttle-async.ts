@@ -1,7 +1,15 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	isDecoratorCall,
+} from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import { isWeakMapKey } from "../common/utils.js";
 import { ThrottleAsyncExecutor } from "./throttle-async-executor.js";
+
+type ThrottleAsyncDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+) => AsyncMethod<This, Args, Return>;
 
 function createThrottledAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
@@ -32,12 +40,32 @@ function createThrottledAsyncMethod<This, Args extends unknown[] = unknown[], Re
 	};
 }
 
-export function throttleAsync(parallelCalls = 1) {
-	return function<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function throttleAsync<This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+): AsyncMethod<This, Args, Return>;
+export function throttleAsync(parallelCalls?: number): ThrottleAsyncDecorator;
+export function throttleAsync(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: AsyncMethod<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("throttleAsync", value, context);
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+		parallelCalls = 1,
+	): AsyncMethod<This, Args, Return> => {
+		assertMethodDecorator("throttleAsync", value, decoratorContext);
 		return createThrottledAsyncMethod(value, parallelCalls);
+	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as AsyncMethod<any, unknown[], unknown>,
+			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
+		);
+	}
+
+	return <This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: AsyncMethod<This, Args, Return>,
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+	): AsyncMethod<This, Args, Return> => {
+		return decorate(value, decoratorContext, inputOrValue as number | undefined);
 	};
 }

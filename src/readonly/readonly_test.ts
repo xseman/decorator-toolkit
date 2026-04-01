@@ -9,7 +9,7 @@ import { readonly } from "./readonly.js";
 describe("readonly", () => {
 	test("throws when assigning to a readonly accessor", () => {
 		class TestSubject {
-			@readonly()
+			@readonly
 			accessor prop = 2;
 		}
 
@@ -21,7 +21,7 @@ describe("readonly", () => {
 	});
 
 	test("throws when used on a field", () => {
-		const invalidReadonly: any = readonly();
+		const invalidReadonly: any = readonly;
 
 		expect(() => {
 			class TestSubject {

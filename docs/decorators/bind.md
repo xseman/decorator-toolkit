@@ -13,6 +13,8 @@ import { bind } from "decorator-toolkit/bind";
 
 ```ts
 bind<This>();
+
+// Default behavior: @bind or @bind()
 ```
 
 ## Example
@@ -23,7 +25,7 @@ import { bind } from "decorator-toolkit/bind";
 class ButtonController {
 	label = "save";
 
-	@bind()
+	@bind
 	handleClick(): string {
 		return this.label;
 	}
@@ -38,9 +40,10 @@ clickHandler();
 ## Notes
 
 - `bind` is a method decorator.
+- Both `@bind` and `@bind()` use the default binding behavior.
 - It binds once during initialization using the standard decorator initializer.
 - Static methods are also supported.
-- If you stack it with other method decorators, place `@bind()` above the other
+- If you stack it with other method decorators, place `@bind` above the other
   decorators when you want the final decorated method to be bound.
 
 ## Related

@@ -19,6 +19,8 @@ memoizeAsync<This, Value, Args>(
 		expirationTimeMs?: number;
 	},
 )
+
+// Default behavior: @memoizeAsync or @memoizeAsync()
 ```
 
 ## Example
@@ -45,6 +47,8 @@ class UserProfiles {
 ## Notes
 
 - `memoizeAsync` is an async method decorator.
+- With the default cache settings, both `@memoizeAsync` and
+  `@memoizeAsync()` are supported.
 - Passing a number is shorthand for `expirationTimeMs`.
 - Rejected calls are not persisted in the cache.
 - By default, keys are derived from `JSON.stringify(args)` and caches are scoped

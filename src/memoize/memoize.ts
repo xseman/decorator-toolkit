@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	isDecoratorCall,
+} from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import {
 	isWeakMapKey,
@@ -19,6 +22,11 @@ export interface MemoizeConfig<This = any, Value = unknown, Args extends unknown
 	keyResolver?: KeyResolver<Args> | keyof This;
 	expirationTimeMs?: number;
 }
+
+type MemoizeDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: Method<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+) => Method<This, Args, Return>;
 
 function resolveCacheKey<This, Args extends unknown[]>(
 	instance: This,
@@ -96,13 +104,33 @@ function createMemoizedMethod<This, Args extends unknown[] = unknown[], Return =
 }
 
 export function memoize<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
+	value: Method<This, Args, Value>,
+	context: ClassMethodDecoratorContext<This, Method<This, Args, Value>>,
+): Method<This, Args, Value>;
+export function memoize<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
 	input?: MemoizeConfig<This, Value, Args> | number,
-) {
-	return function<Return = Value>(
+): MemoizeDecorator;
+export function memoize(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: Method<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> {
-		assertMethodDecorator("memoize", value, context);
+		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+		input?: MemoizeConfig<This, Return, Args> | number,
+	): Method<This, Args, Return> => {
+		assertMethodDecorator("memoize", value, decoratorContext);
 		return createMemoizedMethod(value, input as MemoizeConfig<This, Return, Args> | number);
+	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as Method<any, unknown[], unknown>,
+			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,
+		);
+	}
+
+	return <This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: Method<This, Args, Return>,
+		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+	): Method<This, Args, Return> => {
+		return decorate(value, decoratorContext, inputOrValue as MemoizeConfig<This, Return, Args> | number | undefined);
 	};
 }

@@ -9,7 +9,7 @@ import { throttleAsync } from "./throttle-async.js";
 
 describe("throttleAsync", () => {
 	test("throws when used on a field", () => {
-		const invalidThrottleAsync: any = throttleAsync(50);
+		const invalidThrottleAsync: any = throttleAsync;
 
 		expect(() => {
 			class TestSubject {
@@ -25,7 +25,7 @@ describe("throttleAsync", () => {
 		class TestSubject {
 			value = 0;
 
-			@throttleAsync()
+			@throttleAsync
 			async foo(x: string): Promise<string> {
 				this.value += 1;
 				await sleep(30);

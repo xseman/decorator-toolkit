@@ -2,9 +2,32 @@ import type { AnyFunction } from "./types.js";
 
 type RuntimeDecoratorContext = {
 	kind: string;
-	name: string | symbol;
+	name?: string | symbol;
 	private?: boolean;
 };
+
+function isRuntimeDecoratorContext(context: unknown): context is RuntimeDecoratorContext {
+	return typeof context === "object"
+		&& context !== null
+		&& "kind" in context
+		&& typeof (context as { kind?: unknown; }).kind === "string";
+}
+
+export function isDecoratorCall(context: unknown): boolean {
+	return isRuntimeDecoratorContext(context);
+}
+
+export function isMethodDecoratorCall(value: unknown, context: unknown): boolean {
+	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "method";
+}
+
+export function isClassDecoratorCall(value: unknown, context: unknown): boolean {
+	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "class";
+}
+
+export function isAccessorDecoratorCall(value: unknown, context: unknown): boolean {
+	return value !== null && typeof value === "object" && isRuntimeDecoratorContext(context) && context.kind === "accessor";
+}
 
 export function assertMethodDecorator(
 	decoratorName: string,

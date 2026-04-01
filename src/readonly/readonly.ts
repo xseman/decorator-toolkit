@@ -1,5 +1,6 @@
 import {
 	assertAccessorDecorator,
+	isDecoratorCall,
 	propertyName,
 } from "../common/decorators.js";
 
@@ -14,14 +15,24 @@ function getObjectName(value: unknown): string {
 	return "Object";
 }
 
-export function readonly() {
-	return function<This, Value>(
-		value: ClassAccessorDecoratorTarget<This, Value>,
-		context: ClassAccessorDecoratorContext<This, Value>,
-	) {
-		assertAccessorDecorator("readonly", value, context);
+type ReadonlyDecorator = <This, Value>(
+	value: ClassAccessorDecoratorTarget<This, Value>,
+	context: ClassAccessorDecoratorContext<This, Value>,
+) => ClassAccessorDecoratorResult<This, Value>;
 
-		const name = propertyName(context.name);
+export function readonly<This, Value>(
+	value: ClassAccessorDecoratorTarget<This, Value>,
+	context: ClassAccessorDecoratorContext<This, Value>,
+): ClassAccessorDecoratorResult<This, Value>;
+export function readonly(): ReadonlyDecorator;
+export function readonly(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate: ReadonlyDecorator = <This, Value>(
+		value: ClassAccessorDecoratorTarget<This, Value>,
+		decoratorContext: ClassAccessorDecoratorContext<This, Value>,
+	): ClassAccessorDecoratorResult<This, Value> => {
+		assertAccessorDecorator("readonly", value, decoratorContext);
+
+		const name = propertyName(decoratorContext.name);
 
 		return {
 			get(this: This): Value {
@@ -35,4 +46,13 @@ export function readonly() {
 			},
 		};
 	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as ClassAccessorDecoratorTarget<any, unknown>,
+			context as ClassAccessorDecoratorContext<any, unknown>,
+		);
+	}
+
+	return decorate;
 }

@@ -1,9 +1,17 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	isDecoratorCall,
+} from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import {
 	isWeakMapKey,
 	resolveCallable,
 } from "../common/utils.js";
+
+type DelegateDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+) => AsyncMethod<This, Args, Return>;
 
 function createDelegatedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
@@ -47,14 +55,35 @@ function createDelegatedMethod<This, Args extends unknown[] = unknown[], Return 
 	};
 }
 
+export function delegate<This = any, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+): AsyncMethod<This, Args, Return>;
 export function delegate<This = any, Args extends unknown[] = unknown[]>(
 	keyResolver?: ((...args: Args) => string) | keyof This,
-) {
-	return function<Return = unknown>(
+): DelegateDecorator;
+export function delegate(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: AsyncMethod<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("delegate", value, context);
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+		keyResolver?: ((...args: Args) => string) | keyof This,
+	): AsyncMethod<This, Args, Return> => {
+		assertMethodDecorator("delegate", value, decoratorContext);
 		return createDelegatedMethod(value, keyResolver);
+	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as AsyncMethod<any, unknown[], unknown>,
+			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
+		);
+	}
+
+	const keyResolver = inputOrValue as ((...args: unknown[]) => string) | PropertyKey | undefined;
+	return <This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: AsyncMethod<This, Args, Return>,
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+	): AsyncMethod<This, Args, Return> => {
+		return decorate(value, decoratorContext, keyResolver as ((...args: Args) => string) | keyof This | undefined);
 	};
 }

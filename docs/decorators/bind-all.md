@@ -13,6 +13,8 @@ import { bindAll } from "decorator-toolkit/bind-all";
 
 ```ts
 bindAll();
+
+// Default behavior: @bindAll or @bindAll()
 ```
 
 ## Example
@@ -20,7 +22,7 @@ bindAll();
 ```ts
 import { bindAll } from "decorator-toolkit/bind-all";
 
-@bindAll()
+@bindAll
 class DialogController {
 	title = "settings";
 
@@ -42,6 +44,7 @@ open();
 ## Notes
 
 - `bindAll` is a class decorator.
+- Both `@bindAll` and `@bindAll()` use the default class-wide binding behavior.
 - It binds only public instance methods declared directly on the decorated
   class.
 - It does not bind statics, accessors, inherited methods, or private `#`

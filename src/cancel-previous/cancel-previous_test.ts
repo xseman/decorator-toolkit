@@ -10,7 +10,7 @@ import { CanceledPromise } from "./canceled-promise.js";
 
 describe("cancelPrevious", () => {
 	test("throws when used on a field", () => {
-		const invalidCancelPrevious: any = cancelPrevious();
+		const invalidCancelPrevious: any = cancelPrevious;
 
 		expect(() => {
 			class TestSubject {
@@ -24,7 +24,7 @@ describe("cancelPrevious", () => {
 
 	test("cancels the previous invocation", async () => {
 		class TestSubject {
-			@cancelPrevious()
+			@cancelPrevious
 			foo(x: number): Promise<number> {
 				return new Promise((resolve) => {
 					setTimeout(() => {

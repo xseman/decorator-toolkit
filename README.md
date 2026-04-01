@@ -58,6 +58,12 @@ features and supports standard decorators:
 > classes, and accessor decorators apply to `accessor` members only. Private
 > members are not supported.
 
+> [!TIP]
+> Decorators that use default behavior can be written as `@decorator` or
+> `@decorator()`. This applies to `bind`, `bindAll`, `cancelPrevious`,
+> `delegate`, `execTime`, `memoize`, `memoizeAsync`, `readonly`, and
+> `throttleAsync`.
+
 ### Basic Example
 
 ```ts
@@ -126,7 +132,7 @@ import {
 } from "decorator-toolkit";
 
 class SessionStore {
-	@readonly()
+	@readonly
 	accessor id = crypto.randomUUID();
 
 	@refreshable<SessionStore, number>({

@@ -15,6 +15,8 @@ import { delegate } from "decorator-toolkit/delegate";
 delegate<This, Args>(
 	keyResolver?: keyof This | ((...args: Args) => string),
 )
+
+// Default behavior: @delegate or @delegate()
 ```
 
 ## Example
@@ -38,6 +40,8 @@ class UserDirectory {
 ## Notes
 
 - `delegate` is an async method decorator.
+- With the default `JSON.stringify(args)` key strategy, both `@delegate` and
+  `@delegate()` are supported.
 - By default, the key is `JSON.stringify(args)`.
 - Only concurrent matching calls are shared. Once the promise settles, a later
   call creates a new request.

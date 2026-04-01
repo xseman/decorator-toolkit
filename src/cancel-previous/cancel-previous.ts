@@ -1,7 +1,15 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	isDecoratorCall,
+} from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import { isWeakMapKey } from "../common/utils.js";
 import { CanceledPromise } from "./canceled-promise.js";
+
+type CancelPreviousDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+) => AsyncMethod<This, Args, Return>;
 
 function createCancelableMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
@@ -50,12 +58,26 @@ function createCancelableMethod<This, Args extends unknown[] = unknown[], Return
 	};
 }
 
-export function cancelPrevious() {
-	return function<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function cancelPrevious<This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+): AsyncMethod<This, Args, Return>;
+export function cancelPrevious(): CancelPreviousDecorator;
+export function cancelPrevious(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate: CancelPreviousDecorator = function<This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: AsyncMethod<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("cancelPrevious", value, context);
+		assertMethodDecorator("cancelPrevious", value, decoratorContext);
 		return createCancelableMethod(value);
 	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as AsyncMethod<any, unknown[], unknown>,
+			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
+		);
+	}
+
+	return decorate;
 }

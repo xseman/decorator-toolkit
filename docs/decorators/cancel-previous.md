@@ -17,6 +17,8 @@ import {
 
 ```ts
 cancelPrevious();
+
+// Default behavior: @cancelPrevious or @cancelPrevious()
 ```
 
 ## Example
@@ -28,7 +30,7 @@ import {
 } from "decorator-toolkit/cancel-previous";
 
 class SearchService {
-	@cancelPrevious()
+	@cancelPrevious
 	async search(query: string): Promise<string> {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 		return `results:${query}`;
@@ -53,6 +55,7 @@ await second;
 ## Notes
 
 - `cancelPrevious` is an async method decorator.
+- Both `@cancelPrevious` and `@cancelPrevious()` use the default cancellation behavior.
 - It rejects the promise returned by the previous call. It does not abort the
   underlying task automatically.
 - The most recent call continues normally.

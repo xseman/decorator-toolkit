@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	isDecoratorCall,
+} from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import {
 	isWeakMapKey,
@@ -21,6 +24,11 @@ export interface AsyncMemoizeConfig<This = any, Value = unknown, Args extends un
 	keyResolver?: KeyResolver<Args> | keyof This;
 	expirationTimeMs?: number;
 }
+
+type MemoizeAsyncDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+	value: AsyncMethod<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+) => AsyncMethod<This, Args, Return>;
 
 type AsyncCacheLike<Value> = SyncCache<Value> | AsyncCache<Value>;
 
@@ -148,13 +156,33 @@ function createMemoizedAsyncMethod<This, Args extends unknown[] = unknown[], Ret
 }
 
 export function memoizeAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
+	value: AsyncMethod<This, Args, Value>,
+	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Value>>,
+): AsyncMethod<This, Args, Value>;
+export function memoizeAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
 	input?: AsyncMemoizeConfig<This, Value, Args> | number,
-) {
-	return function<Return = Value>(
+): MemoizeAsyncDecorator;
+export function memoizeAsync(inputOrValue?: unknown, context?: unknown): unknown {
+	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: AsyncMethod<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("memoizeAsync", value, context);
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+		input?: AsyncMemoizeConfig<This, Return, Args> | number,
+	): AsyncMethod<This, Args, Return> => {
+		assertMethodDecorator("memoizeAsync", value, decoratorContext);
 		return createMemoizedAsyncMethod(value, input as AsyncMemoizeConfig<This, Return, Args> | number);
+	};
+
+	if (isDecoratorCall(context)) {
+		return decorate(
+			inputOrValue as AsyncMethod<any, unknown[], unknown>,
+			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
+		);
+	}
+
+	return <This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: AsyncMethod<This, Args, Return>,
+		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+	): AsyncMethod<This, Args, Return> => {
+		return decorate(value, decoratorContext, inputOrValue as AsyncMemoizeConfig<This, Return, Args> | number | undefined);
 	};
 }

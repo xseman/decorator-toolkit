@@ -88,7 +88,7 @@ describe("memoizeAsync", () => {
 	});
 
 	test("throws when used on a field", () => {
-		const invalidMemoizeAsync: any = memoizeAsync(50);
+		const invalidMemoizeAsync: any = memoizeAsync;
 
 		expect(() => {
 			class TestSubject {
@@ -240,7 +240,7 @@ describe("memoizeAsync", () => {
 		class TestSubject {
 			calls = 0;
 
-			@memoizeAsync()
+			@memoizeAsync
 			async foo(x: number): Promise<number> {
 				this.calls += 1;
 				return x + this.calls;

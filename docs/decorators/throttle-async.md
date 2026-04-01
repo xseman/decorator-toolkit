@@ -13,6 +13,8 @@ import { throttleAsync } from "decorator-toolkit/throttle-async";
 
 ```ts
 throttleAsync(parallelCalls?: number)
+
+// Default behavior: @throttleAsync or @throttleAsync()
 ```
 
 ## Example
@@ -32,6 +34,8 @@ class ExportQueue {
 ## Notes
 
 - `throttleAsync` is an async method decorator.
+- With the default concurrency of `1`, both `@throttleAsync` and
+  `@throttleAsync()` are supported.
 - `parallelCalls` defaults to `1`.
 - Extra calls are queued and start when earlier calls settle.
 - Execution state is tracked per instance.

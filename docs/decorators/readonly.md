@@ -13,6 +13,8 @@ import { readonly } from "decorator-toolkit/readonly";
 
 ```ts
 readonly();
+
+// Default behavior: @readonly or @readonly()
 ```
 
 ## Example
@@ -21,7 +23,7 @@ readonly();
 import { readonly } from "decorator-toolkit/readonly";
 
 class SessionStore {
-	@readonly()
+	@readonly
 	accessor id = crypto.randomUUID();
 }
 
@@ -33,6 +35,7 @@ store.id = "next-id";
 ## Notes
 
 - `readonly` is an accessor decorator.
+- Both `@readonly` and `@readonly()` use the default read-only behavior.
 - Use the `accessor` keyword. Plain fields are not supported.
 - The thrown error includes the decorated property name.
 
