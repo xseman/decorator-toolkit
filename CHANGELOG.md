@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.2.0](https://github.com/xseman/decorator-toolkit/compare/v0.1.3...v0.2.0) (2026-04-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cache:** replace memoize APIs with cache decorators ([#5](https://github.com/xseman/decorator-toolkit/issues/5))
+
+### Features
+
+* **cache:** replace memoize APIs with cache decorators ([#5](https://github.com/xseman/decorator-toolkit/issues/5)) ([403044e](https://github.com/xseman/decorator-toolkit/commit/403044e085d6b4c71d3962414663bcccf96666bd))
+
+
+### Bug Fixes
+
+* harden dual-call decorator dispatch ([daaf552](https://github.com/xseman/decorator-toolkit/commit/daaf552c4db6805e7b0ad8205987d26c04b42d37))
+
+
+### Dependency Updates
+
+* update versions ([315245f](https://github.com/xseman/decorator-toolkit/commit/315245f684ad8f19bfc0f8930e5d4c7f8a77b628))
+
+
+### Maintenance
+
+* add coverage reporting ([8e03479](https://github.com/xseman/decorator-toolkit/commit/8e03479dff15d9e1b7c7ef382ae3d8322735c12f))
+* update release-please pr title ([e08f212](https://github.com/xseman/decorator-toolkit/commit/e08f2120631f8aef530ab821f077d6bb25615ac7))
+
 ## [0.1.3](https://github.com/xseman/decorator-toolkit/compare/v0.1.2...v0.1.3) (2026-04-01)
 
 
