@@ -96,17 +96,17 @@
 			"import": "./lib/exec-time/index.js",
 			"require": "./lib/exec-time/index.js"
 		},
-		"./memoize": {
-			"types": "./lib/memoize/index.d.ts",
-			"bun": "./src/memoize/index.ts",
-			"import": "./lib/memoize/index.js",
-			"require": "./lib/memoize/index.js"
+		"./cache": {
+			"types": "./lib/cache/index.d.ts",
+			"bun": "./src/cache/index.ts",
+			"import": "./lib/cache/index.js",
+			"require": "./lib/cache/index.js"
 		},
-		"./memoize-async": {
-			"types": "./lib/memoize-async/index.d.ts",
-			"bun": "./src/memoize-async/index.ts",
-			"import": "./lib/memoize-async/index.js",
-			"require": "./lib/memoize-async/index.js"
+		"./cache-async": {
+			"types": "./lib/cache-async/index.d.ts",
+			"bun": "./src/cache-async/index.ts",
+			"import": "./lib/cache-async/index.js",
+			"require": "./lib/cache-async/index.js"
 		},
 		"./multi-dispatch": {
 			"types": "./lib/multi-dispatch/index.d.ts",

@@ -2,14 +2,14 @@ export { after, type AfterConfig, type AfterFunc, type AfterParams } from "./aft
 export { before, type BeforeConfig } from "./before/index.js";
 export { bindAll } from "./bind-all/index.js";
 export { bind } from "./bind/index.js";
+export { type AsyncCacheConfig, type AsyncCacheStore, cacheAsync } from "./cache-async/index.js";
+export { cache, type CacheConfig, type CacheStore, type KeyResolver } from "./cache/index.js";
 export { CanceledPromise, cancelPrevious } from "./cancel-previous/index.js";
 export type { AsyncMethod, Method, UnboxPromise } from "./common/types.js";
 export { debounce } from "./debounce/index.js";
 export { delay } from "./delay/index.js";
 export { delegate } from "./delegate/index.js";
 export { type ExactTimeReportData, execTime, type ReportFunction } from "./exec-time/index.js";
-export { type AsyncCache, type AsyncMemoizeConfig, memoizeAsync } from "./memoize-async/index.js";
-export { type KeyResolver, memoize, type MemoizeConfig, type SyncCache } from "./memoize/index.js";
 export { multiDispatch } from "./multi-dispatch/index.js";
 export { onError, type OnErrorConfig, type OnErrorHandler } from "./on-error/index.js";
 export { rateLimit, type RateLimitAsyncCounter, type RateLimitConfig, type RateLimitCounter, SimpleRateLimitCounter } from "./rate-limit/index.js";

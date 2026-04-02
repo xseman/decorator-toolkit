@@ -35,8 +35,8 @@ Use decorator syntax with TypeScript 5+ standard decorators.
 ### Caching and request coordination
 
 - [delegate](decorators/delegate.md)
-- [memoize](decorators/memoize.md)
-- [memoizeAsync](decorators/memoize-async.md)
+- [cache](decorators/cache.md)
+- [cacheAsync](decorators/cache-async.md)
 - [rateLimit](decorators/rate-limit.md)
 
 ### Accessors

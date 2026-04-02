@@ -52,4 +52,4 @@ store.count = null;
 ## Related
 
 - [readonly](readonly.md)
-- [memoizeAsync](memoize-async.md)
+- [cacheAsync](cache-async.md)

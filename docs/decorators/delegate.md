@@ -49,5 +49,5 @@ class UserDirectory {
 ## Related
 
 - [cancelPrevious](cancel-previous.md)
-- [memoizeAsync](memoize-async.md)
+- [cacheAsync](cache-async.md)
 - [throttleAsync](throttle-async.md)

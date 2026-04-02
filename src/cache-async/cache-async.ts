@@ -1,3 +1,7 @@
+import type {
+	CacheStore,
+	KeyResolver,
+} from "../cache/cache.js";
 import {
 	assertMethodDecorator,
 	isDecoratorCall,
@@ -7,30 +11,26 @@ import {
 	isWeakMapKey,
 	resolveCallable,
 } from "../common/utils.js";
-import type {
-	KeyResolver,
-	SyncCache,
-} from "../memoize/memoize.js";
 
-export interface AsyncCache<Value> {
+export interface AsyncCacheStore<Value> {
 	set: (key: string, value: Value) => Promise<unknown>;
 	get: (key: string) => Promise<Value | null | undefined>;
 	delete: (key: string) => Promise<unknown>;
 	has: (key: string) => Promise<boolean>;
 }
 
-export interface AsyncMemoizeConfig<This = any, Value = unknown, Args extends unknown[] = unknown[]> {
-	cache?: SyncCache<Value> | AsyncCache<Value>;
+export interface AsyncCacheConfig<This = any, Value = unknown, Args extends unknown[] = unknown[]> {
+	store?: CacheStore<Value> | AsyncCacheStore<Value>;
 	keyResolver?: KeyResolver<Args> | keyof This;
-	expirationTimeMs?: number;
+	ttlMs?: number;
 }
 
-type MemoizeAsyncDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+type CacheAsyncDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: AsyncMethod<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ) => AsyncMethod<This, Args, Return>;
 
-type AsyncCacheLike<Value> = SyncCache<Value> | AsyncCache<Value>;
+type AsyncCacheStoreLike<Value> = CacheStore<Value> | AsyncCacheStore<Value>;
 
 function resolveCacheKey<This, Args extends unknown[]>(
 	instance: This,
@@ -44,66 +44,66 @@ function resolveCacheKey<This, Args extends unknown[]>(
 	return resolveCallable<This, string>(instance, keyResolver)(...args);
 }
 
-function normalizeMemoizeAsyncInput<This, Value, Args extends unknown[]>(
-	input?: AsyncMemoizeConfig<This, Value, Args> | number,
-): AsyncMemoizeConfig<This, Value, Args> {
+function normalizeCacheAsyncInput<This, Value, Args extends unknown[]>(
+	input?: AsyncCacheConfig<This, Value, Args> | number,
+): AsyncCacheConfig<This, Value, Args> {
 	if (typeof input === "number") {
 		return {
-			expirationTimeMs: input,
+			ttlMs: input,
 		};
 	}
 
 	return input ?? {};
 }
 
-function scheduleAsyncExpiration<Value>(cache: AsyncCacheLike<Value>, key: string, expirationTimeMs: number): void {
+function scheduleAsyncExpiration<Value>(store: AsyncCacheStoreLike<Value>, key: string, ttlMs: number): void {
 	setTimeout(() => {
-		void Promise.resolve(cache.delete(key)).catch(() => {
+		void Promise.resolve(store.delete(key)).catch(() => {
 			return undefined;
 		});
-	}, expirationTimeMs);
+	}, ttlMs);
 }
 
-async function cacheHas<Value>(cache: AsyncCacheLike<Value>, key: string): Promise<boolean> {
-	return Promise.resolve(cache.has(key));
+async function storeHas<Value>(store: AsyncCacheStoreLike<Value>, key: string): Promise<boolean> {
+	return Promise.resolve(store.has(key));
 }
 
-async function cacheGet<Value>(cache: AsyncCacheLike<Value>, key: string): Promise<Value | null | undefined> {
-	return Promise.resolve(cache.get(key));
+async function storeGet<Value>(store: AsyncCacheStoreLike<Value>, key: string): Promise<Value | null | undefined> {
+	return Promise.resolve(store.get(key));
 }
 
-async function cacheSet<Value>(cache: AsyncCacheLike<Value>, key: string, value: Value): Promise<void> {
-	await Promise.resolve(cache.set(key, value));
+async function storeSet<Value>(store: AsyncCacheStoreLike<Value>, key: string, value: Value): Promise<void> {
+	await Promise.resolve(store.set(key, value));
 }
 
-function createMemoizedAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+function createCachedAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
-	input?: AsyncMemoizeConfig<This, Return, Args> | number,
+	input?: AsyncCacheConfig<This, Return, Args> | number,
 ): AsyncMethod<This, Args, Return> {
-	const resolvedConfig = normalizeMemoizeAsyncInput(input);
-	const cachesByInstance = new WeakMap<object, AsyncCacheLike<Return>>();
+	const resolvedConfig = normalizeCacheAsyncInput(input);
+	const storesByInstance = new WeakMap<object, AsyncCacheStoreLike<Return>>();
 	const pendingByInstance = new WeakMap<object, Map<string, Promise<Return>>>();
-	const fallbackCache: AsyncCacheLike<Return> = resolvedConfig.cache ?? new Map<string, Return>();
+	const fallbackStore: AsyncCacheStoreLike<Return> = resolvedConfig.store ?? new Map<string, Return>();
 	const fallbackPending = new Map<string, Promise<Return>>();
 
-	const getCache = (instance: This): AsyncCacheLike<Return> => {
-		if (resolvedConfig.cache !== undefined) {
-			return resolvedConfig.cache;
+	const getStore = (instance: This): AsyncCacheStoreLike<Return> => {
+		if (resolvedConfig.store !== undefined) {
+			return resolvedConfig.store;
 		}
 
 		if (!isWeakMapKey(instance)) {
-			return fallbackCache;
+			return fallbackStore;
 		}
 
 		const instanceKey = instance as object;
-		const existingCache = cachesByInstance.get(instanceKey);
-		if (existingCache !== undefined) {
-			return existingCache;
+		const existingStore = storesByInstance.get(instanceKey);
+		if (existingStore !== undefined) {
+			return existingStore;
 		}
 
-		const cache = new Map<string, Return>();
-		cachesByInstance.set(instanceKey, cache);
-		return cache;
+		const store = new Map<string, Return>();
+		storesByInstance.set(instanceKey, store);
+		return store;
 	};
 
 	const getPending = (instance: This): Map<string, Promise<Return>> => {
@@ -123,7 +123,7 @@ function createMemoizedAsyncMethod<This, Args extends unknown[] = unknown[], Ret
 	};
 
 	return async function(this: This, ...args: Args): Promise<Return> {
-		const cache = getCache(this);
+		const store = getStore(this);
 		const pending = getPending(this);
 		const key = resolveCacheKey(this, resolvedConfig.keyResolver, args);
 
@@ -133,16 +133,16 @@ function createMemoizedAsyncMethod<This, Args extends unknown[] = unknown[], Ret
 		}
 
 		const promise = (async (): Promise<Return> => {
-			const inCache = await cacheHas(cache, key);
-			if (inCache) {
-				return await cacheGet(cache, key) as Return;
+			const inStore = await storeHas(store, key);
+			if (inStore) {
+				return await storeGet(store, key) as Return;
 			}
 
 			const data = await originalMethod.apply(this, args);
-			await cacheSet(cache, key, data);
+			await storeSet(store, key, data);
 
-			if (resolvedConfig.expirationTimeMs !== undefined) {
-				scheduleAsyncExpiration(cache, key, resolvedConfig.expirationTimeMs);
+			if (resolvedConfig.ttlMs !== undefined) {
+				scheduleAsyncExpiration(store, key, resolvedConfig.ttlMs);
 			}
 
 			return data;
@@ -155,21 +155,21 @@ function createMemoizedAsyncMethod<This, Args extends unknown[] = unknown[], Ret
 	};
 }
 
-export function memoizeAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
+export function cacheAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
 	value: AsyncMethod<This, Args, Value>,
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Value>>,
 ): AsyncMethod<This, Args, Value>;
-export function memoizeAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
-	input?: AsyncMemoizeConfig<This, Value, Args> | number,
-): MemoizeAsyncDecorator;
-export function memoizeAsync(inputOrValue?: unknown, context?: unknown): unknown {
+export function cacheAsync<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
+	input?: AsyncCacheConfig<This, Value, Args> | number,
+): CacheAsyncDecorator;
+export function cacheAsync(inputOrValue?: unknown, context?: unknown): unknown {
 	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
 		value: AsyncMethod<This, Args, Return>,
 		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-		input?: AsyncMemoizeConfig<This, Return, Args> | number,
+		input?: AsyncCacheConfig<This, Return, Args> | number,
 	): AsyncMethod<This, Args, Return> => {
-		assertMethodDecorator("memoizeAsync", value, decoratorContext);
-		return createMemoizedAsyncMethod(value, input as AsyncMemoizeConfig<This, Return, Args> | number);
+		assertMethodDecorator("cacheAsync", value, decoratorContext);
+		return createCachedAsyncMethod(value, input as AsyncCacheConfig<This, Return, Args> | number);
 	};
 
 	if (isDecoratorCall(context)) {
@@ -183,6 +183,6 @@ export function memoizeAsync(inputOrValue?: unknown, context?: unknown): unknown
 		value: AsyncMethod<This, Args, Return>,
 		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 	): AsyncMethod<This, Args, Return> => {
-		return decorate(value, decoratorContext, inputOrValue as AsyncMemoizeConfig<This, Return, Args> | number | undefined);
+		return decorate(value, decoratorContext, inputOrValue as AsyncCacheConfig<This, Return, Args> | number | undefined);
 	};
 }
