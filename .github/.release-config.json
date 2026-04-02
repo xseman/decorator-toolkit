@@ -11,7 +11,7 @@
 			"bump-minor-pre-major": true,
 			"bump-patch-for-minor-pre-major": true,
 			"pull-request-title-pattern": "v${version}",
-			"pull-request-header": "🚢 TypeScript package release",
+			"pull-request-header": "🚢 package release",
 			"pull-request-footer": ""
 		}
 	},
