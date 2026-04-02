@@ -50,7 +50,7 @@ class UserProfiles {
 - With the default settings, both `@cacheAsync` and `@cacheAsync()` are
   supported.
 - Passing a number is shorthand for `ttlMs`.
-- Rejected calls are not persisted in the cache.
+- Rejected calls are not persisted in the store.
 - By default, keys are derived from `JSON.stringify(args)` and stores are scoped
   per instance.
 
