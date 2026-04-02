@@ -55,7 +55,7 @@ export function throttleAsync(inputOrValue?: unknown, context?: unknown): unknow
 		return createThrottledAsyncMethod(value, parallelCalls);
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as AsyncMethod<any, unknown[], unknown>,
 			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,

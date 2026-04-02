@@ -72,7 +72,7 @@ export function delegate(inputOrValue?: unknown, context?: unknown): unknown {
 		return createDelegatedMethod(value, keyResolver);
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as AsyncMethod<any, unknown[], unknown>,
 			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,

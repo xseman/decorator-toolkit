@@ -32,4 +32,17 @@ describe("readonly", () => {
 			return TestSubject;
 		}).toThrow("@readonly is applicable only on accessors.");
 	});
+
+	test("supports the default behavior in factory form", () => {
+		class TestSubject {
+			@readonly()
+			accessor prop = 2;
+		}
+
+		const subject = new TestSubject();
+		expect(subject.prop).toBe(2);
+		expect(() => {
+			subject.prop = 5;
+		}).toThrow("Cannot assign to read only property 'prop' of object '#<TestSubject>'");
+	});
 });

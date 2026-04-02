@@ -73,7 +73,7 @@ export function execTime(inputOrValue?: unknown, context?: unknown): unknown {
 		return createExecTimeMethod(value, reporterArg);
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as Method<any, unknown[], unknown>,
 			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,

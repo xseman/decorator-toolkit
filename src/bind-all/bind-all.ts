@@ -48,7 +48,7 @@ export function bindAll(inputOrValue?: unknown, context?: unknown): unknown {
 		} as Class;
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(inputOrValue as Constructor, context as ClassDecoratorContext<Constructor>);
 	}
 

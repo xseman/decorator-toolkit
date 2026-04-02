@@ -28,13 +28,23 @@ on:
             - ".github/workflows/quality.yml"
             - ".github/workflows/release.yml"
     workflow_dispatch:
+        inputs:
+            pr_number:
+                description: "PR number to run coverage for"
+                required: false
+                type: string
 
 permissions:
     contents: read
+    pull-requests: write
+    actions: write
 
 jobs:
     test:
         runs-on: ubuntu-latest
+        concurrency:
+            group: decorator-toolkit-coverage-comment-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.ref }}
+            cancel-in-progress: false
         steps:
             - uses: actions/checkout@v6
             - uses: oven-sh/setup-bun@v2
@@ -49,6 +59,15 @@ jobs:
 
             - name: test
               run: bun run test
+
+            - name: Coverage report
+              if: (github.event_name == 'pull_request' && github.actor != 'release-please[bot]') || github.event_name == 'workflow_dispatch'
+              uses: xseman/coverage@v0.4.0
+              with:
+                  pull-request-number: ${{ github.event.inputs.pr_number }}
+                  update-comment-marker: "<!-- coverage-reporter-decorator-toolkit -->"
+                  coverage-artifact-paths: |
+                      bun:coverage/lcov.info
 
     fmt:
         runs-on: ubuntu-latest

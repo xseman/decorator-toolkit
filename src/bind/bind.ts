@@ -31,7 +31,7 @@ export function bind(inputOrValue?: unknown, context?: unknown): unknown {
 		});
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as Method<any, unknown[], unknown>,
 			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,

@@ -86,4 +86,34 @@ describe("bind", () => {
 		expect(detached()).toBe(7);
 		expect(detached).toBe(Example.foo);
 	});
+
+	test("binds the final method when stacked above another decorator", () => {
+		const calls: string[] = [];
+
+		function trace<This, Args extends unknown[] = unknown[], Return = unknown>(
+			value: (this: This, ...args: Args) => Return,
+			context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Return>,
+		): (this: This, ...args: Args) => Return {
+			return function(this: This, ...args: Args): Return {
+				calls.push(String(context.name));
+				return value.apply(this, args);
+			};
+		}
+
+		class TestSubject {
+			constructor(private readonly value: number) {}
+
+			@bind
+			@trace
+			foo(): number {
+				return this.value;
+			}
+		}
+
+		const subject = new TestSubject(9);
+		const detached = subject.foo;
+
+		expect(detached()).toBe(9);
+		expect(calls).toEqual(["foo"]);
+	});
 });
