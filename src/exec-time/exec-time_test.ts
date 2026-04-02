@@ -87,6 +87,23 @@ describe("exec-time", () => {
 		logSpy.mockRestore();
 	});
 
+	test("uses console.info by default in factory form", () => {
+		const logSpy = spyOn(console, "info");
+
+		class TestSubject {
+			@execTime()
+			foo(x: string): string {
+				return `${x}b`;
+			}
+		}
+
+		const result = new TestSubject().foo("a");
+		expect(result).toBe("ab");
+		expect(logSpy.mock.calls).toHaveLength(1);
+		expect(typeof logSpy.mock.calls[0][0]).toBe("number");
+		logSpy.mockRestore();
+	});
+
 	test("uses a named reporter", async () => {
 		const reports: Array<ExactTimeReportData<string, [string]>> = [];
 

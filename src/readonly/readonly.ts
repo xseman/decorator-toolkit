@@ -47,7 +47,7 @@ export function readonly(inputOrValue?: unknown, context?: unknown): unknown {
 		};
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as ClassAccessorDecoratorTarget<any, unknown>,
 			context as ClassAccessorDecoratorContext<any, unknown>,

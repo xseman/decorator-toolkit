@@ -72,7 +72,7 @@ export function cancelPrevious(inputOrValue?: unknown, context?: unknown): unkno
 		return createCancelableMethod(value);
 	};
 
-	if (isDecoratorCall(context)) {
+	if (arguments.length === 2 && isDecoratorCall(context)) {
 		return decorate(
 			inputOrValue as AsyncMethod<any, unknown[], unknown>,
 			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
