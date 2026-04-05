@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/xseman/decorator-toolkit/compare/v0.2.0...v0.3.0) (2026-04-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* legacy decorators with tc39 and switch legacy exports to subpath /legacy ([#7](https://github.com/xseman/decorator-toolkit/issues/7))
+
+### Features
+
+* legacy decorators with tc39 and switch legacy exports to subpath /legacy ([#7](https://github.com/xseman/decorator-toolkit/issues/7)) ([0585e1b](https://github.com/xseman/decorator-toolkit/commit/0585e1b32f9aa013bfbf1cda27847a0dded2550a))
+
 ## [0.2.0](https://github.com/xseman/decorator-toolkit/compare/v0.1.3...v0.2.0) (2026-04-02)
 
 
