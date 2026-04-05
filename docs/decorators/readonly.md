@@ -9,6 +9,8 @@ but every write throws a `TypeError`.
 import { readonly } from "decorator-toolkit/readonly";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/readonly/legacy`.
+
 ## Signature
 
 ```ts
@@ -36,7 +38,8 @@ store.id = "next-id";
 
 - `readonly` is an accessor decorator.
 - Both `@readonly` and `@readonly()` use the default read-only behavior.
-- Use the `accessor` keyword. Plain fields are not supported.
+- Use the `accessor` keyword for the default TC39 variant. The legacy variant
+	decorates getter/setter accessors instead.
 - The thrown error includes the decorated property name.
 
 ## Related

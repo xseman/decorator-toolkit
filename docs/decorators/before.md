@@ -9,6 +9,8 @@ instrumentation, or instance-local side effects that must happen first.
 import { before } from "decorator-toolkit/before";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/before/legacy`.
+
 ## Signature
 
 ```ts

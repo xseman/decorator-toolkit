@@ -1,11 +1,15 @@
 # Documentation
 
 These pages document the current `decorator-toolkit` API. They are based on
-the examples from the legacy `utils-decorators` site, but only the supported
-decorator API is covered here.
+the examples from the legacy `utils-decorators` site and cover both supported
+decorator variants:
+
+- standard decorators from `decorator-toolkit/<name>`
+- legacy TypeScript decorators from `decorator-toolkit/<name>/legacy`
 
 `decorator-toolkit` does not include the old `*ify` function-wrapper helpers.
-Use decorator syntax with TypeScript 5+ standard decorators.
+Use standard decorators by default. Reach for the `/legacy` subpath only when a
+project still depends on TypeScript's legacy decorator transform.
 
 ## Reference
 
@@ -48,7 +52,10 @@ Use decorator syntax with TypeScript 5+ standard decorators.
 
 - Method decorators in this package apply to methods only.
 - `bindAll` applies to classes.
-- `readonly` and `refreshable` apply to `accessor` members only.
+- `readonly` and `refreshable` use TC39 `accessor` members by default; the
+  `/legacy` variants decorate getter/setter accessors instead.
 - Private class members are not supported.
 - Root imports and subpath imports are both supported. The examples in this
   directory prefer subpath imports so each page stays focused on one decorator.
+- Default subpaths like `decorator-toolkit/cache` resolve to the TC39 variant.
+  Legacy variants use `decorator-toolkit/cache/legacy`.

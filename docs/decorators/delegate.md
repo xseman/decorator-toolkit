@@ -9,6 +9,8 @@ This avoids duplicated concurrent work for identical requests.
 import { delegate } from "decorator-toolkit/delegate";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/delegate/legacy`.
+
 ## Signature
 
 ```ts
