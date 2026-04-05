@@ -13,6 +13,22 @@ function applyAccessor(proto: object, key: string, decorator: MethodDecorator): 
 }
 
 describe("legacy refreshable", () => {
+	test("throws when used on a method", () => {
+		class Subject {
+			fetch(): string {
+				return "x";
+			}
+		}
+
+		const desc = Object.getOwnPropertyDescriptor(Subject.prototype, "fetch")!;
+
+		expect(() => refreshable({ dataProvider: async () => "x", intervalMs: 20 })(
+			Subject.prototype,
+			"fetch",
+			desc,
+		)).toThrow("@refreshable is applicable only on accessors.");
+	});
+
 	test("starts auto-refresh on first get access", async () => {
 		let fetchCount = 0;
 

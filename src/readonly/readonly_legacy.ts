@@ -1,4 +1,7 @@
-import { isLegacyDecoratorCall } from "../common/decorators_legacy.js";
+import {
+	assertLegacyAccessorDecorator,
+	isLegacyDecoratorCall,
+} from "../common/decorators_legacy.js";
 
 function getObjectName(value: unknown): string {
 	if (typeof value === "object" && value !== null) {
@@ -12,6 +15,8 @@ function getObjectName(value: unknown): string {
 }
 
 function makeReadonlyDescriptor(k: string | symbol, desc: PropertyDescriptor): PropertyDescriptor {
+	assertLegacyAccessorDecorator("readonly", desc);
+
 	const name = typeof k === "string" ? k : (k.description ?? k.toString());
 	const readonlySet = function(this: unknown): void {
 		throw new TypeError(

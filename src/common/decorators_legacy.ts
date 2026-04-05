@@ -14,3 +14,13 @@ export function isLegacyDecoratorCall(target: unknown, key: unknown, descriptor:
 		&& descriptor !== null
 		&& ("value" in (descriptor as object) || "get" in (descriptor as object));
 }
+
+export function assertLegacyAccessorDecorator(decoratorName: string, descriptor: PropertyDescriptor): void {
+	const isAccessor = !("value" in descriptor)
+		&& !("writable" in descriptor)
+		&& (typeof descriptor.get === "function" || typeof descriptor.set === "function");
+
+	if (!isAccessor) {
+		throw new Error(`@${decoratorName} is applicable only on accessors.`);
+	}
+}

@@ -1,3 +1,4 @@
+import { assertLegacyAccessorDecorator } from "../common/decorators_legacy.js";
 import {
 	isWeakMapKey,
 	resolveCallable,
@@ -17,6 +18,8 @@ export function refreshable<This = any, Value = unknown>(
 	config: RefreshableConfig<This, Value>,
 ): MethodDecorator {
 	return (target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor => {
+		assertLegacyAccessorDecorator("refreshable", descriptor);
+
 		const originalGet = descriptor.get as ((this: This) => Value | null) | undefined;
 		const originalSet = descriptor.set as ((this: This, v: Value | null) => void) | undefined;
 

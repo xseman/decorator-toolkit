@@ -38,7 +38,7 @@ describe("legacy rateLimit", () => {
 
 		const s = new Subject();
 		s.call();
-		expect(() => s.call()).toThrow("You have acceded the amount of allowed calls");
+		expect(() => s.call()).toThrow("You have exceeded the number of allowed calls.");
 	});
 
 	test("throws with both counter types provided", () => {
@@ -53,6 +53,6 @@ describe("legacy rateLimit", () => {
 					getCount: async () => 0,
 				},
 			});
-		}).toThrow();
+		}).toThrow("You can't provide both rateLimitAsyncCounter and rateLimitCounter.");
 	});
 });

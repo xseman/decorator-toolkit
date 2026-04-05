@@ -13,6 +13,20 @@ function applyAccessor(proto: object, key: string, decorator: MethodDecorator): 
 }
 
 describe("legacy readonly", () => {
+	test("throws when used on a method", () => {
+		class Subject {
+			getValue(): number {
+				return 42;
+			}
+		}
+
+		const desc = Object.getOwnPropertyDescriptor(Subject.prototype, "getValue")!;
+
+		expect(() => readonly(Subject.prototype, "getValue", desc)).toThrow(
+			"@readonly is applicable only on accessors.",
+		);
+	});
+
 	test("throws on set (bare — direct call)", () => {
 		class Subject {
 			private _x = 42;

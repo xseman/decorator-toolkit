@@ -15,13 +15,13 @@ export function rateLimit<This = any, Args extends unknown[] = unknown[]>(
 	config: RateLimitConfig<This, Args>,
 ): MethodDecorator {
 	if (config.rateLimitAsyncCounter !== undefined && config.rateLimitCounter !== undefined) {
-		throw new Error("You cant provide both rateLimitAsyncCounter and rateLimitCounter.");
+		throw new Error("You can't provide both rateLimitAsyncCounter and rateLimitCounter.");
 	}
 
 	const resolvedConfig = {
 		rateLimitCounter: new SimpleRateLimitCounter(),
 		exceedHandler: (): void => {
-			throw new Error("You have acceded the amount of allowed calls");
+			throw new Error("You have exceeded the number of allowed calls.");
 		},
 		...config,
 	};

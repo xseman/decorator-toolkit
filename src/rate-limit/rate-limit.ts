@@ -115,13 +115,13 @@ export function createRateLimitedMethod<This, Args extends unknown[] = unknown[]
 
 export function rateLimit<This = any, Args extends unknown[] = unknown[]>(config: RateLimitConfig<This, Args>) {
 	if (config.rateLimitAsyncCounter !== undefined && config.rateLimitCounter !== undefined) {
-		throw new Error("You cant provide both rateLimitAsyncCounter and rateLimitCounter.");
+		throw new Error("You can't provide both rateLimitAsyncCounter and rateLimitCounter.");
 	}
 
 	const resolvedConfig: Required<Pick<RateLimitConfig<This, Args>, "allowedCalls" | "timeSpanMs" | "exceedHandler">> & RateLimitConfig<This, Args> = {
 		rateLimitCounter: new SimpleRateLimitCounter(),
 		exceedHandler: () => {
-			throw new Error("You have acceded the amount of allowed calls");
+			throw new Error("You have exceeded the number of allowed calls.");
 		},
 		...config,
 	};
