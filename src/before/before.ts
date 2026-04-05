@@ -10,7 +10,7 @@ export interface BeforeConfig<This = any> {
 	wait?: boolean;
 }
 
-function createBeforeMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createBeforeMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: Method<This, Args, Return>,
 	config: BeforeConfig<This>,
 ): Method<This, Args, Return> {

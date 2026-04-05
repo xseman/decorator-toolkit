@@ -2,7 +2,7 @@ import { assertMethodDecorator } from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import { TimeoutError } from "./timeout-error.js";
 
-function createTimedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createTimedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	ms: number,
 ): AsyncMethod<This, Args, Return> {

@@ -76,7 +76,7 @@ async function storeSet<Value>(store: AsyncCacheStoreLike<Value>, key: string, v
 	await Promise.resolve(store.set(key, value));
 }
 
-function createCachedAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createCachedAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	input?: AsyncCacheConfig<This, Return, Args> | number,
 ): AsyncMethod<This, Args, Return> {

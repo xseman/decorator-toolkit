@@ -9,6 +9,8 @@ useful when a downstream service can only handle limited parallelism.
 import { throttleAsync } from "decorator-toolkit/throttle-async";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/throttle-async/legacy`.
+
 ## Signature
 
 ```ts

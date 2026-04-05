@@ -13,6 +13,8 @@ import {
 } from "decorator-toolkit/cancel-previous";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/cancel-previous/legacy`.
+
 ## Signature
 
 ```ts

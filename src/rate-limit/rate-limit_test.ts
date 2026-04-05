@@ -79,7 +79,7 @@ describe("rateLimit", () => {
 				rateLimitAsyncCounter: {} as RateLimitAsyncCounter,
 				rateLimitCounter: {} as SimpleRateLimitCounter,
 			});
-		}).toThrow("You cant provide both rateLimitAsyncCounter and rateLimitCounter.");
+		}).toThrow("You can't provide both rateLimitAsyncCounter and rateLimitCounter.");
 	});
 
 	test("enforces the synchronous limit with the default counter", async () => {
@@ -96,7 +96,7 @@ describe("rateLimit", () => {
 			subject.foo();
 			throw new Error("should not reach this line");
 		} catch (error) {
-			expect((error as Error).message).toBe("You have acceded the amount of allowed calls");
+			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
 		}
 
 		await sleep(80);
@@ -135,7 +135,7 @@ describe("rateLimit", () => {
 			subject.foo();
 			throw new Error("should not reach this line");
 		} catch (error) {
-			expect((error as Error).message).toBe("You have acceded the amount of allowed calls");
+			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
 		}
 
 		await sleep(80);
@@ -180,7 +180,7 @@ describe("rateLimit", () => {
 			await first.foo();
 			throw new Error("should not reach this line");
 		} catch (error) {
-			expect((error as Error).message).toBe("You have acceded the amount of allowed calls");
+			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
 		}
 
 		await sleep(80);
@@ -223,7 +223,7 @@ describe("rateLimit", () => {
 			functionKey.foo("a");
 			throw new Error("should not reach this line");
 		} catch (error) {
-			expect((error as Error).message).toBe("You have acceded the amount of allowed calls");
+			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
 		}
 		await sleep(120);
 		functionKey.foo("a");
@@ -237,7 +237,7 @@ describe("rateLimit", () => {
 			namedKey.foo("a");
 			throw new Error("should not reach this line");
 		} catch (error) {
-			expect((error as Error).message).toBe("You have acceded the amount of allowed calls");
+			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
 		}
 		await sleep(120);
 		namedKey.foo("a");

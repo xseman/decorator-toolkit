@@ -11,7 +11,7 @@ export interface OnErrorConfig<This = any, Return = unknown, Args extends unknow
 
 export type OnErrorHandler<Return = unknown, Args extends unknown[] = unknown[]> = (error: any, args: Args) => Return | Promise<Awaited<Return>>;
 
-function createOnErrorMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createOnErrorMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: Method<This, Args, Return>,
 	config: OnErrorConfig<This, Return, Args>,
 ): Method<This, Args, Return> {

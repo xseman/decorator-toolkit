@@ -12,6 +12,8 @@ import {
 } from "decorator-toolkit/rate-limit";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/rate-limit/legacy`.
+
 ## Signature
 
 ```ts

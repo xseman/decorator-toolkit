@@ -2,7 +2,7 @@ import { assertMethodDecorator } from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import { isWeakMapKey } from "../common/utils.js";
 
-function createThrottledMethod<This, Args extends unknown[] = unknown[]>(
+export function createThrottledMethod<This, Args extends unknown[] = unknown[]>(
 	originalMethod: Method<This, Args, unknown>,
 	delayMs: number,
 ): Method<This, Args, void> {

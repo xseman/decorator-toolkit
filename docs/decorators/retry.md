@@ -9,6 +9,8 @@ useful when failures are transient and a second attempt often succeeds.
 import { retry } from "decorator-toolkit/retry";
 ```
 
+For legacy TypeScript decorators, import from `decorator-toolkit/retry/legacy`.
+
 ## Signature
 
 ```ts

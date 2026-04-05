@@ -25,7 +25,7 @@ type ExecTimeDecorator = <This, Args extends unknown[] = unknown[], Return = unk
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ) => Method<This, Args, Return>;
 
-function createExecTimeMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createExecTimeMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: Method<This, Args, Return>,
 	arg?: ReportFunction<Awaited<Return>, Args> | keyof This,
 ): Method<This, Args, Return> {

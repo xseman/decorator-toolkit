@@ -17,7 +17,7 @@ export interface AfterParams<Return = unknown, Args extends unknown[] = unknown[
 	response: Return;
 }
 
-function createAfterMethod<This, Args extends unknown[] = unknown[], Return = unknown, Response = Return>(
+export function createAfterMethod<This, Args extends unknown[] = unknown[], Return = unknown, Response = Return>(
 	originalMethod: Method<This, Args, Return>,
 	config: AfterConfig<This, Response, Args>,
 ): Method<This, Args, Return> {
