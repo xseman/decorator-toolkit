@@ -2,7 +2,7 @@ import { assertMethodDecorator } from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import { isWeakMapKey } from "../common/utils.js";
 
-function createDebouncedMethod<This, Args extends unknown[] = unknown[]>(
+export function createDebouncedMethod<This, Args extends unknown[] = unknown[]>(
 	originalMethod: Method<This, Args, unknown>,
 	delayMs: number,
 ): Method<This, Args, void> {

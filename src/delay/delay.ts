@@ -1,7 +1,7 @@
 import { assertMethodDecorator } from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 
-function createDelayedMethod<This, Args extends unknown[] = unknown[]>(
+export function createDelayedMethod<This, Args extends unknown[] = unknown[]>(
 	originalMethod: Method<This, Args, unknown>,
 	delayMs: number,
 ): Method<This, Args, void> {

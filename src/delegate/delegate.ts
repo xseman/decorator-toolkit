@@ -13,7 +13,7 @@ type DelegateDecorator = <This, Args extends unknown[] = unknown[], Return = unk
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ) => AsyncMethod<This, Args, Return>;
 
-function createDelegatedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createDelegatedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	keyResolver?: ((...args: Args) => string) | keyof This,
 ): AsyncMethod<This, Args, Return> {

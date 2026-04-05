@@ -18,7 +18,7 @@ export type RetryInputConfig<This = any> = {
 	onRetry?: OnRetry | keyof This;
 };
 
-function getRetriesArray(input: RetryInput<any>): number[] {
+export function getRetriesArray(input: RetryInput<any>): number[] {
 	if (Array.isArray(input)) {
 		return input;
 	}
@@ -80,7 +80,7 @@ async function execRetry<This, Args extends unknown[], Return>(
 	}
 }
 
-function createRetryMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createRetryMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	retriesArray: number[],
 	input: RetryInput<This>,

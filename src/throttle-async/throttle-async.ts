@@ -11,7 +11,7 @@ type ThrottleAsyncDecorator = <This, Args extends unknown[] = unknown[], Return 
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ) => AsyncMethod<This, Args, Return>;
 
-function createThrottledAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createThrottledAsyncMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	parallelCalls = 1,
 ): AsyncMethod<This, Args, Return> {

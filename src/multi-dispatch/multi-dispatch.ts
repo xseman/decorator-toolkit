@@ -1,7 +1,7 @@
 import { assertMethodDecorator } from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 
-function createMultiDispatchMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createMultiDispatchMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 	dispatchesAmount: number,
 ): AsyncMethod<This, Args, Return> {

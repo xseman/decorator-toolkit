@@ -11,7 +11,7 @@ type CancelPreviousDecorator = <This, Args extends unknown[] = unknown[], Return
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ) => AsyncMethod<This, Args, Return>;
 
-function createCancelableMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createCancelableMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: AsyncMethod<This, Args, Return>,
 ): AsyncMethod<This, Args, Return> {
 	const rejectors = new WeakMap<object, (error: CanceledPromise) => void>();

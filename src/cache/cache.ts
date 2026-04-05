@@ -28,7 +28,7 @@ type CacheDecorator = <This, Args extends unknown[] = unknown[], Return = unknow
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ) => Method<This, Args, Return>;
 
-function resolveCacheKey<This, Args extends unknown[]>(
+export function resolveCacheKey<This, Args extends unknown[]>(
 	instance: This,
 	keyResolver: KeyResolver<Args> | keyof This | undefined,
 	args: Args,
@@ -40,7 +40,7 @@ function resolveCacheKey<This, Args extends unknown[]>(
 	return resolveCallable<This, string>(instance, keyResolver)(...args);
 }
 
-function normalizeCacheInput<This, Value, Args extends unknown[]>(
+export function normalizeCacheInput<This, Value, Args extends unknown[]>(
 	input?: CacheConfig<This, Value, Args> | number,
 ): CacheConfig<This, Value, Args> {
 	if (typeof input === "number") {
@@ -52,13 +52,13 @@ function normalizeCacheInput<This, Value, Args extends unknown[]>(
 	return input ?? {};
 }
 
-function scheduleCacheExpiration<Value>(store: CacheStore<Value>, key: string, ttlMs: number): void {
+export function scheduleCacheExpiration<Value>(store: CacheStore<Value>, key: string, ttlMs: number): void {
 	setTimeout(() => {
 		store.delete(key);
 	}, ttlMs);
 }
 
-function createCachedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createCachedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: Method<This, Args, Return>,
 	input?: CacheConfig<This, Return, Args> | number,
 ): Method<This, Args, Return> {

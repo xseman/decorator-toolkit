@@ -96,7 +96,7 @@ function handleRateLimit<This, Args extends unknown[], Return>(
 	return originalMethod.apply(target, args);
 }
 
-function createRateLimitedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function createRateLimitedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
 	originalMethod: Method<This, Args, Return>,
 	resolvedConfig: Required<Pick<RateLimitConfig<This, Args>, "allowedCalls" | "timeSpanMs" | "exceedHandler">> & RateLimitConfig<This, Args>,
 ): Method<This, Args, Return> {
