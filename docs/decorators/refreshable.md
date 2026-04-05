@@ -48,7 +48,7 @@ store.count = null;
 
 - `refreshable` is an accessor decorator.
 - Use the `accessor` keyword for the default TC39 variant. The legacy variant
-	decorates getter/setter accessors instead.
+  decorates getter/setter accessors instead.
 - The provider is called once during initialization and then on every interval.
 - Assign `null` to stop future refreshes. Other manual assignments are ignored.
 

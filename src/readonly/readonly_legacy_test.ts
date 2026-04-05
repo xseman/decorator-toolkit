@@ -1,4 +1,9 @@
-import { describe, expect, test } from "bun:test";
+import {
+	describe,
+	expect,
+	test,
+} from "bun:test";
+
 import { readonly } from "./readonly_legacy.js";
 
 function applyAccessor(proto: object, key: string, decorator: MethodDecorator): void {
@@ -22,12 +27,14 @@ describe("legacy readonly", () => {
 		}
 
 		const desc = Object.getOwnPropertyDescriptor(Subject.prototype, "x")!;
-		const result = (readonly as any)(Subject.prototype, "x", desc);
+		const result = readonly(Subject.prototype, "x", desc);
 		if (result) Object.defineProperty(Subject.prototype, "x", result);
 
 		const s = new Subject();
 		expect(s.x).toBe(42);
-		expect(() => { s.x = 99; }).toThrow(TypeError);
+		expect(() => {
+			s.x = 99;
+		}).toThrow(TypeError);
 	});
 
 	test("throws on set (factory form)", () => {
@@ -47,7 +54,9 @@ describe("legacy readonly", () => {
 
 		const s = new Subject();
 		expect(s.y).toBe(7);
-		expect(() => { s.y = 1; }).toThrow(TypeError);
+		expect(() => {
+			s.y = 1;
+		}).toThrow(TypeError);
 	});
 
 	test("error message includes property name", () => {
@@ -66,6 +75,8 @@ describe("legacy readonly", () => {
 		applyAccessor(Subject.prototype, "z", readonly());
 
 		const s = new Subject();
-		expect(() => { s.z = 1; }).toThrow("Cannot assign to read only property 'z'");
+		expect(() => {
+			s.z = 1;
+		}).toThrow("Cannot assign to read only property 'z'");
 	});
 });
