@@ -9,7 +9,7 @@ but every write throws a `TypeError`.
 import { readonly } from "decorator-toolkit/readonly";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/readonly/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/readonly/legacy` or import `{ readonly }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

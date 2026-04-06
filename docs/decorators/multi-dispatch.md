@@ -9,7 +9,7 @@ successful result.
 import { multiDispatch } from "decorator-toolkit/multi-dispatch";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/multi-dispatch/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/multi-dispatch/legacy` or import `{ multiDispatch }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

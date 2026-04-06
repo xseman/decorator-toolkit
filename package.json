@@ -42,6 +42,12 @@
 			"import": "./lib/index.js",
 			"require": "./lib/index.js"
 		},
+		"./legacy": {
+			"types": "./lib/legacy.d.ts",
+			"bun": "./src/legacy.ts",
+			"import": "./lib/legacy.js",
+			"require": "./lib/legacy.js"
+		},
 		"./after": {
 			"types": "./lib/after/index.d.ts",
 			"bun": "./src/after/index.ts",

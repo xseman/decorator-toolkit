@@ -12,7 +12,7 @@ import {
 } from "decorator-toolkit/rate-limit";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/rate-limit/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/rate-limit/legacy` or import `{ rateLimit }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

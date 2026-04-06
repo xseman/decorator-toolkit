@@ -9,7 +9,7 @@ receiver.
 import { bind } from "decorator-toolkit/bind";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/bind/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/bind/legacy` or import `{ bind }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

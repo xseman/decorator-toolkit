@@ -9,7 +9,7 @@ expires.
 import { throttle } from "decorator-toolkit/throttle";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/throttle/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/throttle/legacy` or import `{ throttle }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

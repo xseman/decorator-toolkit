@@ -6,6 +6,7 @@ decorator variants:
 
 - standard decorators from `decorator-toolkit/<name>`
 - legacy TypeScript decorators from `decorator-toolkit/<name>/legacy`
+- named legacy imports from `decorator-toolkit/legacy`
 
 `decorator-toolkit` does not include the old `*ify` function-wrapper helpers.
 Use standard decorators by default. Reach for the `/legacy` subpath only when a
@@ -58,4 +59,6 @@ project still depends on TypeScript's legacy decorator transform.
 - Root imports and subpath imports are both supported. The examples in this
   directory prefer subpath imports so each page stays focused on one decorator.
 - Default subpaths like `decorator-toolkit/cache` resolve to the TC39 variant.
-  Legacy variants use `decorator-toolkit/cache/legacy`.
+  Legacy variants use `decorator-toolkit/cache/legacy` for a single decorator or
+  named imports from `decorator-toolkit/legacy` when grouping several legacy
+  decorators together.

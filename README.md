@@ -38,6 +38,10 @@ This package targets the standard TC39 decorator model. It is intended for
 TypeScript 5+ projects using standard decorators rather than legacy
 `experimentalDecorators` semantics.
 
+Legacy TypeScript decorators are also available for projects that still use the
+older transform. Import them from `decorator-toolkit/legacy` or
+`decorator-toolkit/<name>/legacy`.
+
 ### Compiler Setup
 
 At minimum, use a modern TypeScript configuration that emits native class
@@ -173,6 +177,20 @@ import {
 	TimeoutError,
 } from "decorator-toolkit/timeout";
 ```
+
+Legacy TypeScript decorators are available from the existing suffix subpaths,
+and `decorator-toolkit/legacy` re-exports the full legacy surface:
+
+```ts
+import { cache as legacyCache } from "decorator-toolkit/cache/legacy";
+import {
+	cache,
+	timeout,
+} from "decorator-toolkit/legacy";
+```
+
+Use the suffix path when you want one decorator only. Use the legacy barrel
+when you want several legacy decorators from a single import.
 
 ## Documentation
 

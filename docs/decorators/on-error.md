@@ -9,7 +9,7 @@ a fallback value, start recovery work, or rethrow.
 import { onError } from "decorator-toolkit/on-error";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/on-error/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/on-error/legacy` or import `{ onError }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

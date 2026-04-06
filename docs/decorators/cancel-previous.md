@@ -13,7 +13,7 @@ import {
 } from "decorator-toolkit/cancel-previous";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/cancel-previous/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/cancel-previous/legacy` or import `{ cancelPrevious }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

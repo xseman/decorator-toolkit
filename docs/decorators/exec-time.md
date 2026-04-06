@@ -9,7 +9,7 @@ for both synchronous methods and methods that return promises.
 import { execTime } from "decorator-toolkit/exec-time";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/exec-time/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/exec-time/legacy` or import `{ execTime }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

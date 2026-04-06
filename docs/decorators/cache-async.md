@@ -9,7 +9,7 @@ is requested concurrently, callers receive the same promise.
 import { cacheAsync } from "decorator-toolkit/cache-async";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/cache-async/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/cache-async/legacy` or import `{ cacheAsync }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

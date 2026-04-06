@@ -9,7 +9,7 @@ interval.
 import { refreshable } from "decorator-toolkit/refreshable";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/refreshable/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/refreshable/legacy` or import `{ refreshable }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

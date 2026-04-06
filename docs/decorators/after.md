@@ -9,7 +9,7 @@ method returns a promise, the hook runs after the promise resolves.
 import { after } from "decorator-toolkit/after";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/after/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/after/legacy` or import `{ after }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

@@ -9,7 +9,7 @@ running the method again.
 import { cache } from "decorator-toolkit/cache";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/cache/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/cache/legacy` or import `{ cache }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

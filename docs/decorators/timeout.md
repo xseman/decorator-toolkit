@@ -11,7 +11,7 @@ import {
 } from "decorator-toolkit/timeout";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/timeout/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/timeout/legacy` or import `{ timeout }` from `decorator-toolkit/legacy`.
 
 ## Signature
 

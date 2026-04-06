@@ -9,7 +9,7 @@ construction.
 import { bindAll } from "decorator-toolkit/bind-all";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/bind-all/legacy`.
+For legacy TypeScript decorators, import from `decorator-toolkit/bind-all/legacy` or import `{ bindAll }` from `decorator-toolkit/legacy`.
 
 ## Signature
 
