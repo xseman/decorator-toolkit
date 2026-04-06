@@ -24,11 +24,8 @@
 
 ```sh
 $ npm install decorator-toolkit
-```
 
-### Bun
-
-```sh
+# or using Bun
 $ bun add decorator-toolkit
 ```
 
