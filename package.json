@@ -34,256 +34,257 @@
 		"node": ">=18.0.0"
 	},
 	"sideEffects": false,
+	"types": "./src/index.ts",
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
-			"types": "./lib/index.d.ts",
+			"types": "./src/index.ts",
 			"bun": "./src/index.ts",
 			"import": "./lib/index.js",
 			"require": "./lib/index.js"
 		},
 		"./legacy": {
-			"types": "./lib/legacy.d.ts",
+			"types": "./src/legacy.ts",
 			"bun": "./src/legacy.ts",
 			"import": "./lib/legacy.js",
 			"require": "./lib/legacy.js"
 		},
 		"./after": {
-			"types": "./lib/after/index.d.ts",
+			"types": "./src/after/index.ts",
 			"bun": "./src/after/index.ts",
 			"import": "./lib/after/index.js",
 			"require": "./lib/after/index.js"
 		},
 		"./after/legacy": {
-			"types": "./lib/after/after_legacy.d.ts",
+			"types": "./src/after/after_legacy.ts",
 			"bun": "./src/after/after_legacy.ts",
 			"import": "./lib/after/after_legacy.js",
 			"require": "./lib/after/after_legacy.js"
 		},
 		"./before": {
-			"types": "./lib/before/index.d.ts",
+			"types": "./src/before/index.ts",
 			"bun": "./src/before/index.ts",
 			"import": "./lib/before/index.js",
 			"require": "./lib/before/index.js"
 		},
 		"./before/legacy": {
-			"types": "./lib/before/before_legacy.d.ts",
+			"types": "./src/before/before_legacy.ts",
 			"bun": "./src/before/before_legacy.ts",
 			"import": "./lib/before/before_legacy.js",
 			"require": "./lib/before/before_legacy.js"
 		},
 		"./bind": {
-			"types": "./lib/bind/index.d.ts",
+			"types": "./src/bind/index.ts",
 			"bun": "./src/bind/index.ts",
 			"import": "./lib/bind/index.js",
 			"require": "./lib/bind/index.js"
 		},
 		"./bind/legacy": {
-			"types": "./lib/bind/bind_legacy.d.ts",
+			"types": "./src/bind/bind_legacy.ts",
 			"bun": "./src/bind/bind_legacy.ts",
 			"import": "./lib/bind/bind_legacy.js",
 			"require": "./lib/bind/bind_legacy.js"
 		},
 		"./bind-all": {
-			"types": "./lib/bind-all/index.d.ts",
+			"types": "./src/bind-all/index.ts",
 			"bun": "./src/bind-all/index.ts",
 			"import": "./lib/bind-all/index.js",
 			"require": "./lib/bind-all/index.js"
 		},
 		"./bind-all/legacy": {
-			"types": "./lib/bind-all/bind-all_legacy.d.ts",
+			"types": "./src/bind-all/bind-all_legacy.ts",
 			"bun": "./src/bind-all/bind-all_legacy.ts",
 			"import": "./lib/bind-all/bind-all_legacy.js",
 			"require": "./lib/bind-all/bind-all_legacy.js"
 		},
 		"./cancel-previous": {
-			"types": "./lib/cancel-previous/index.d.ts",
+			"types": "./src/cancel-previous/index.ts",
 			"bun": "./src/cancel-previous/index.ts",
 			"import": "./lib/cancel-previous/index.js",
 			"require": "./lib/cancel-previous/index.js"
 		},
 		"./cancel-previous/legacy": {
-			"types": "./lib/cancel-previous/cancel-previous_legacy.d.ts",
+			"types": "./src/cancel-previous/cancel-previous_legacy.ts",
 			"bun": "./src/cancel-previous/cancel-previous_legacy.ts",
 			"import": "./lib/cancel-previous/cancel-previous_legacy.js",
 			"require": "./lib/cancel-previous/cancel-previous_legacy.js"
 		},
 		"./debounce": {
-			"types": "./lib/debounce/index.d.ts",
+			"types": "./src/debounce/index.ts",
 			"bun": "./src/debounce/index.ts",
 			"import": "./lib/debounce/index.js",
 			"require": "./lib/debounce/index.js"
 		},
 		"./debounce/legacy": {
-			"types": "./lib/debounce/debounce_legacy.d.ts",
+			"types": "./src/debounce/debounce_legacy.ts",
 			"bun": "./src/debounce/debounce_legacy.ts",
 			"import": "./lib/debounce/debounce_legacy.js",
 			"require": "./lib/debounce/debounce_legacy.js"
 		},
 		"./delegate": {
-			"types": "./lib/delegate/index.d.ts",
+			"types": "./src/delegate/index.ts",
 			"bun": "./src/delegate/index.ts",
 			"import": "./lib/delegate/index.js",
 			"require": "./lib/delegate/index.js"
 		},
 		"./delegate/legacy": {
-			"types": "./lib/delegate/delegate_legacy.d.ts",
+			"types": "./src/delegate/delegate_legacy.ts",
 			"bun": "./src/delegate/delegate_legacy.ts",
 			"import": "./lib/delegate/delegate_legacy.js",
 			"require": "./lib/delegate/delegate_legacy.js"
 		},
 		"./delay": {
-			"types": "./lib/delay/index.d.ts",
+			"types": "./src/delay/index.ts",
 			"bun": "./src/delay/index.ts",
 			"import": "./lib/delay/index.js",
 			"require": "./lib/delay/index.js"
 		},
 		"./delay/legacy": {
-			"types": "./lib/delay/delay_legacy.d.ts",
+			"types": "./src/delay/delay_legacy.ts",
 			"bun": "./src/delay/delay_legacy.ts",
 			"import": "./lib/delay/delay_legacy.js",
 			"require": "./lib/delay/delay_legacy.js"
 		},
 		"./exec-time": {
-			"types": "./lib/exec-time/index.d.ts",
+			"types": "./src/exec-time/index.ts",
 			"bun": "./src/exec-time/index.ts",
 			"import": "./lib/exec-time/index.js",
 			"require": "./lib/exec-time/index.js"
 		},
 		"./exec-time/legacy": {
-			"types": "./lib/exec-time/exec-time_legacy.d.ts",
+			"types": "./src/exec-time/exec-time_legacy.ts",
 			"bun": "./src/exec-time/exec-time_legacy.ts",
 			"import": "./lib/exec-time/exec-time_legacy.js",
 			"require": "./lib/exec-time/exec-time_legacy.js"
 		},
 		"./cache": {
-			"types": "./lib/cache/index.d.ts",
+			"types": "./src/cache/index.ts",
 			"bun": "./src/cache/index.ts",
 			"import": "./lib/cache/index.js",
 			"require": "./lib/cache/index.js"
 		},
 		"./cache/legacy": {
-			"types": "./lib/cache/cache_legacy.d.ts",
+			"types": "./src/cache/cache_legacy.ts",
 			"bun": "./src/cache/cache_legacy.ts",
 			"import": "./lib/cache/cache_legacy.js",
 			"require": "./lib/cache/cache_legacy.js"
 		},
 		"./cache-async": {
-			"types": "./lib/cache-async/index.d.ts",
+			"types": "./src/cache-async/index.ts",
 			"bun": "./src/cache-async/index.ts",
 			"import": "./lib/cache-async/index.js",
 			"require": "./lib/cache-async/index.js"
 		},
 		"./cache-async/legacy": {
-			"types": "./lib/cache-async/cache-async_legacy.d.ts",
+			"types": "./src/cache-async/cache-async_legacy.ts",
 			"bun": "./src/cache-async/cache-async_legacy.ts",
 			"import": "./lib/cache-async/cache-async_legacy.js",
 			"require": "./lib/cache-async/cache-async_legacy.js"
 		},
 		"./multi-dispatch": {
-			"types": "./lib/multi-dispatch/index.d.ts",
+			"types": "./src/multi-dispatch/index.ts",
 			"bun": "./src/multi-dispatch/index.ts",
 			"import": "./lib/multi-dispatch/index.js",
 			"require": "./lib/multi-dispatch/index.js"
 		},
 		"./multi-dispatch/legacy": {
-			"types": "./lib/multi-dispatch/multi-dispatch_legacy.d.ts",
+			"types": "./src/multi-dispatch/multi-dispatch_legacy.ts",
 			"bun": "./src/multi-dispatch/multi-dispatch_legacy.ts",
 			"import": "./lib/multi-dispatch/multi-dispatch_legacy.js",
 			"require": "./lib/multi-dispatch/multi-dispatch_legacy.js"
 		},
 		"./on-error": {
-			"types": "./lib/on-error/index.d.ts",
+			"types": "./src/on-error/index.ts",
 			"bun": "./src/on-error/index.ts",
 			"import": "./lib/on-error/index.js",
 			"require": "./lib/on-error/index.js"
 		},
 		"./on-error/legacy": {
-			"types": "./lib/on-error/on-error_legacy.d.ts",
+			"types": "./src/on-error/on-error_legacy.ts",
 			"bun": "./src/on-error/on-error_legacy.ts",
 			"import": "./lib/on-error/on-error_legacy.js",
 			"require": "./lib/on-error/on-error_legacy.js"
 		},
 		"./rate-limit": {
-			"types": "./lib/rate-limit/index.d.ts",
+			"types": "./src/rate-limit/index.ts",
 			"bun": "./src/rate-limit/index.ts",
 			"import": "./lib/rate-limit/index.js",
 			"require": "./lib/rate-limit/index.js"
 		},
 		"./rate-limit/legacy": {
-			"types": "./lib/rate-limit/rate-limit_legacy.d.ts",
+			"types": "./src/rate-limit/rate-limit_legacy.ts",
 			"bun": "./src/rate-limit/rate-limit_legacy.ts",
 			"import": "./lib/rate-limit/rate-limit_legacy.js",
 			"require": "./lib/rate-limit/rate-limit_legacy.js"
 		},
 		"./readonly": {
-			"types": "./lib/readonly/index.d.ts",
+			"types": "./src/readonly/index.ts",
 			"bun": "./src/readonly/index.ts",
 			"import": "./lib/readonly/index.js",
 			"require": "./lib/readonly/index.js"
 		},
 		"./readonly/legacy": {
-			"types": "./lib/readonly/readonly_legacy.d.ts",
+			"types": "./src/readonly/readonly_legacy.ts",
 			"bun": "./src/readonly/readonly_legacy.ts",
 			"import": "./lib/readonly/readonly_legacy.js",
 			"require": "./lib/readonly/readonly_legacy.js"
 		},
 		"./refreshable": {
-			"types": "./lib/refreshable/index.d.ts",
+			"types": "./src/refreshable/index.ts",
 			"bun": "./src/refreshable/index.ts",
 			"import": "./lib/refreshable/index.js",
 			"require": "./lib/refreshable/index.js"
 		},
 		"./refreshable/legacy": {
-			"types": "./lib/refreshable/refreshable_legacy.d.ts",
+			"types": "./src/refreshable/refreshable_legacy.ts",
 			"bun": "./src/refreshable/refreshable_legacy.ts",
 			"import": "./lib/refreshable/refreshable_legacy.js",
 			"require": "./lib/refreshable/refreshable_legacy.js"
 		},
 		"./retry": {
-			"types": "./lib/retry/index.d.ts",
+			"types": "./src/retry/index.ts",
 			"bun": "./src/retry/index.ts",
 			"import": "./lib/retry/index.js",
 			"require": "./lib/retry/index.js"
 		},
 		"./retry/legacy": {
-			"types": "./lib/retry/retry_legacy.d.ts",
+			"types": "./src/retry/retry_legacy.ts",
 			"bun": "./src/retry/retry_legacy.ts",
 			"import": "./lib/retry/retry_legacy.js",
 			"require": "./lib/retry/retry_legacy.js"
 		},
 		"./throttle": {
-			"types": "./lib/throttle/index.d.ts",
+			"types": "./src/throttle/index.ts",
 			"bun": "./src/throttle/index.ts",
 			"import": "./lib/throttle/index.js",
 			"require": "./lib/throttle/index.js"
 		},
 		"./throttle/legacy": {
-			"types": "./lib/throttle/throttle_legacy.d.ts",
+			"types": "./src/throttle/throttle_legacy.ts",
 			"bun": "./src/throttle/throttle_legacy.ts",
 			"import": "./lib/throttle/throttle_legacy.js",
 			"require": "./lib/throttle/throttle_legacy.js"
 		},
 		"./throttle-async": {
-			"types": "./lib/throttle-async/index.d.ts",
+			"types": "./src/throttle-async/index.ts",
 			"bun": "./src/throttle-async/index.ts",
 			"import": "./lib/throttle-async/index.js",
 			"require": "./lib/throttle-async/index.js"
 		},
 		"./throttle-async/legacy": {
-			"types": "./lib/throttle-async/throttle-async_legacy.d.ts",
+			"types": "./src/throttle-async/throttle-async_legacy.ts",
 			"bun": "./src/throttle-async/throttle-async_legacy.ts",
 			"import": "./lib/throttle-async/throttle-async_legacy.js",
 			"require": "./lib/throttle-async/throttle-async_legacy.js"
 		},
 		"./timeout": {
-			"types": "./lib/timeout/index.d.ts",
+			"types": "./src/timeout/index.ts",
 			"bun": "./src/timeout/index.ts",
 			"import": "./lib/timeout/index.js",
 			"require": "./lib/timeout/index.js"
 		},
 		"./timeout/legacy": {
-			"types": "./lib/timeout/timeout_legacy.d.ts",
+			"types": "./src/timeout/timeout_legacy.ts",
 			"bun": "./src/timeout/timeout_legacy.ts",
 			"import": "./lib/timeout/timeout_legacy.js",
 			"require": "./lib/timeout/timeout_legacy.js"
@@ -291,7 +292,6 @@
 	},
 	"files": [
 		"lib/**/*.js",
-		"lib/**/*.d.ts",
 		"!lib/**/*_test*",
 		"src/**/*.ts",
 		"!src/**/*_test.ts"
