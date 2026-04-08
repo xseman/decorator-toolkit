@@ -2,7 +2,7 @@
 	"name": "decorator-toolkit",
 	"description": "Modern TC39 decorators for reducing repetitive code.",
 	"type": "module",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"license": "Apache-2.0",
 	"funding": "https://github.com/sponsors/xseman",
 	"homepage": "https://github.com/xseman/decorator-toolkit",

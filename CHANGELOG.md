@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.0](https://github.com/xseman/decorator-toolkit/compare/v0.3.0...v0.4.0) (2026-04-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* resolve types from src and stop emitting declarations
+
+### Features
+
+* **dispose:** add dispose and lazy decorators ([#10](https://github.com/xseman/decorator-toolkit/issues/10)) ([b4d33c6](https://github.com/xseman/decorator-toolkit/commit/b4d33c663cc369632ed9e204d199003d98afa4c7))
+
+
+### Documentation
+
+* clarify legacy barrel and suffix import usage ([6ee8cd4](https://github.com/xseman/decorator-toolkit/commit/6ee8cd4306a6ecc1855adc7defc56c73cf336ab8))
+* update installation ([db40f0e](https://github.com/xseman/decorator-toolkit/commit/db40f0ee6e717552c5bdf6ed44b44a2f78492a19))
+
+
+### Build System
+
+* resolve types from src and stop emitting declarations ([4c62dce](https://github.com/xseman/decorator-toolkit/commit/4c62dceb350a31ce502d54a59bad39511428b91f))
+
 ## [0.3.0](https://github.com/xseman/decorator-toolkit/compare/v0.2.0...v0.3.0) (2026-04-05)
 
 
