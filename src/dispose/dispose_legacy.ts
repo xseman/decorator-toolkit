@@ -16,20 +16,26 @@ function wire(
 	const original = descriptor.value as (this: unknown) => unknown;
 	const symbol = config.async ? Symbol.asyncDispose : Symbol.dispose;
 
+	if (typeof symbol !== "symbol") {
+		throw new Error(
+			`@dispose requires ${config.async ? "Symbol.asyncDispose" : "Symbol.dispose"}, which is not available in this runtime.`,
+		);
+	}
+
 	const proto = target as Record<PropertyKey, unknown>;
-	const previous = proto[symbol] as ((this: unknown) => unknown) | undefined;
+	const previous = proto[symbol];
 
 	if (config.async) {
 		proto[symbol] = async function(this: unknown): Promise<void> {
-			if (previous !== undefined) {
-				await previous.call(this);
+			if (typeof previous === "function") {
+				await (previous as (this: unknown) => unknown).call(this);
 			}
 			await original.call(this);
 		};
 	} else {
 		proto[symbol] = function(this: unknown): void {
-			if (previous !== undefined) {
-				previous.call(this);
+			if (typeof previous === "function") {
+				(previous as (this: unknown) => void).call(this);
 			}
 			original.call(this);
 		};

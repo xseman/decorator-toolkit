@@ -53,7 +53,7 @@ describe("dispose (legacy)", () => {
 		expect(subject.disposed).toBe(true);
 	});
 
-	test("multiple @dispose methods all called (LIFO order)", () => {
+	test("multiple @dispose methods all called in declaration order (FIFO)", () => {
 		const calls: string[] = [];
 
 		class TestSubject {

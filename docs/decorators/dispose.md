@@ -83,7 +83,7 @@ class Service {
 - Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
-- Requires TypeScript 5.2+ and a runtime that supports `Symbol.dispose` / `Symbol.asyncDispose` (Node.js ≥ 18.18, Bun ≥ 1.0).
+- Requires TypeScript 5.2+ and a runtime that supports `Symbol.dispose` / `Symbol.asyncDispose`. This decorator specifically requires Node.js ≥ 18.18 or Bun ≥ 1.0, even though the package's engine constraint is `>=18.0.0`.
 
 ## Related
 

@@ -36,7 +36,7 @@ describe("dispose", () => {
 		}
 
 		{
-			using _r = new Resource();
+			using _r = new Resource() as unknown as Disposable;
 		}
 
 		expect(disposed).toBe(true);
@@ -70,13 +70,13 @@ describe("dispose", () => {
 		}
 
 		{
-			await using _r = new Resource();
+			await using _r = new Resource() as unknown as AsyncDisposable;
 		}
 
 		expect(disposed).toBe(true);
 	});
 
-	test("multiple @dispose methods all called (LIFO order)", () => {
+	test("multiple @dispose methods all called in declaration order (FIFO)", () => {
 		const calls: string[] = [];
 
 		class TestSubject {
@@ -94,13 +94,12 @@ describe("dispose", () => {
 		const subject = new TestSubject();
 		(subject as any)[Symbol.dispose]();
 
-		// LIFO: second was added last, so its wrapper calls first's wrapper, then second
 		expect(calls).toContain("first");
 		expect(calls).toContain("second");
 		expect(calls).toHaveLength(2);
 	});
 
-	test("disposal order is LIFO (last decorator applied runs last, innermost first)", () => {
+	test("disposal order follows declaration order (FIFO)", () => {
 		const calls: string[] = [];
 
 		class TestSubject {

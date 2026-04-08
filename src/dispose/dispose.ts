@@ -22,20 +22,26 @@ function wire(
 
 	const symbol = config.async ? Symbol.asyncDispose : Symbol.dispose;
 
+	if (typeof symbol !== "symbol") {
+		throw new Error(
+			`@dispose requires ${config.async ? "Symbol.asyncDispose" : "Symbol.dispose"}, which is not available in this runtime.`,
+		);
+	}
+
 	decoratorContext.addInitializer(function(this: any): void {
 		const instance = this as Record<PropertyKey, unknown>;
-		const previous = instance[symbol] as (() => unknown) | undefined;
+		const previous = instance[symbol];
 
 		if (config.async) {
 			instance[symbol] = async function(this: unknown): Promise<void> {
-				if (previous !== undefined) {
-					await previous.call(this);
+				if (typeof previous === "function") {
+					await (previous as () => unknown).call(this);
 				}
 				await value.call(this);
 			};
 		} else {
 			instance[symbol] = function(this: unknown): void {
-				if (previous !== undefined) {
+				if (typeof previous === "function") {
 					(previous as () => void).call(this);
 				}
 				(value as () => void).call(this);
