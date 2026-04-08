@@ -31,7 +31,6 @@
 		".github/**",
 		"**/node_modules",
 		"**/*-lock.json",
-		"**/tsconfig.json",
 		"**/lib",
 		"**/coverage"
 	],

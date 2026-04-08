@@ -16,6 +16,7 @@
 		"url": "https://github.com/xseman/decorator-toolkit"
 	},
 	"scripts": {
+		"prebuild": "tsc --build --clean",
 		"build": "tsc --build",
 		"fmt": "dprint fmt",
 		"fmt:check": "dprint check",
@@ -133,6 +134,18 @@
 			"import": "./lib/delegate/delegate_legacy.js",
 			"require": "./lib/delegate/delegate_legacy.js"
 		},
+		"./dispose": {
+			"types": "./src/dispose/index.ts",
+			"bun": "./src/dispose/index.ts",
+			"import": "./lib/dispose/index.js",
+			"require": "./lib/dispose/index.js"
+		},
+		"./dispose/legacy": {
+			"types": "./src/dispose/dispose_legacy.ts",
+			"bun": "./src/dispose/dispose_legacy.ts",
+			"import": "./lib/dispose/dispose_legacy.js",
+			"require": "./lib/dispose/dispose_legacy.js"
+		},
 		"./delay": {
 			"types": "./src/delay/index.ts",
 			"bun": "./src/delay/index.ts",
@@ -228,6 +241,18 @@
 			"bun": "./src/readonly/readonly_legacy.ts",
 			"import": "./lib/readonly/readonly_legacy.js",
 			"require": "./lib/readonly/readonly_legacy.js"
+		},
+		"./lazy": {
+			"types": "./src/lazy/index.ts",
+			"bun": "./src/lazy/index.ts",
+			"import": "./lib/lazy/index.js",
+			"require": "./lib/lazy/index.js"
+		},
+		"./lazy/legacy": {
+			"types": "./src/lazy/lazy_legacy.ts",
+			"bun": "./src/lazy/lazy_legacy.ts",
+			"import": "./lib/lazy/lazy_legacy.js",
+			"require": "./lib/lazy/lazy_legacy.js"
 		},
 		"./refreshable": {
 			"types": "./src/refreshable/index.ts",

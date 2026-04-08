@@ -19,6 +19,7 @@ project still depends on TypeScript's legacy decorator transform.
 - [after](decorators/after.md)
 - [before](decorators/before.md)
 - [bind](decorators/bind.md)
+- [dispose](decorators/dispose.md)
 - [execTime](decorators/exec-time.md)
 - [onError](decorators/on-error.md)
 
@@ -46,6 +47,7 @@ project still depends on TypeScript's legacy decorator transform.
 
 ### Accessors
 
+- [lazy](decorators/lazy.md)
 - [readonly](decorators/readonly.md)
 - [refreshable](decorators/refreshable.md)
 
@@ -55,6 +57,10 @@ project still depends on TypeScript's legacy decorator transform.
 - `bindAll` applies to classes.
 - `readonly` and `refreshable` use TC39 `accessor` members by default; the
   `/legacy` variants decorate getter/setter accessors instead.
+- `lazy` decorates `get` accessors (not `accessor` members); the `/legacy`
+  variant decorates getter/setter accessors.
+- `dispose` wires a method to `Symbol.dispose` (or `Symbol.asyncDispose` with
+  `{ async: true }`). Use `using` / `await using` to trigger disposal.
 - Private class members are not supported.
 - Root imports and subpath imports are both supported. The examples in this
   directory prefer subpath imports so each page stays focused on one decorator.
