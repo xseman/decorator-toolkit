@@ -66,10 +66,10 @@ order they were declared (FIFO):
 ```ts
 class Service {
 	@dispose
-	closeCache(): void { /* ... */ }
+	closeCache(): void {/* ... */}
 
 	@dispose
-	closeDatabase(): void { /* ... */ }
+	closeDatabase(): void {/* ... */}
 }
 
 // on disposal: closeCache() then closeDatabase()

@@ -14,7 +14,7 @@ For legacy TypeScript decorators, import from `decorator-toolkit/lazy/legacy` or
 ## Signature
 
 ```ts
-lazy()
+lazy();
 
 // Default behavior: @lazy or @lazy()
 ```
