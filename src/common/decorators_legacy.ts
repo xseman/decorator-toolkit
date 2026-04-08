@@ -24,3 +24,13 @@ export function assertLegacyAccessorDecorator(decoratorName: string, descriptor:
 		throw new Error(`@${decoratorName} is applicable only on accessors.`);
 	}
 }
+
+export function assertLegacyGetterDecorator(decoratorName: string, descriptor: PropertyDescriptor): void {
+	const isGetter = !("value" in descriptor)
+		&& !("writable" in descriptor)
+		&& typeof descriptor.get === "function";
+
+	if (!isGetter) {
+		throw new Error(`@${decoratorName} is applicable only on getters.`);
+	}
+}

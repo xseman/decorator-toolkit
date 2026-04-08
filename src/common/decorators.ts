@@ -63,6 +63,24 @@ export function assertAccessorDecorator(
 	}
 }
 
+export function isGetterDecoratorCall(value: unknown, context: unknown): boolean {
+	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "getter";
+}
+
+export function assertGetterDecorator(
+	decoratorName: string,
+	value: unknown,
+	context: RuntimeDecoratorContext,
+): asserts value is AnyFunction {
+	if (context.kind !== "getter" || typeof value !== "function") {
+		throw new Error(`@${decoratorName} is applicable only on getters.`);
+	}
+
+	if (context.private) {
+		throw new Error(`@${decoratorName} does not support private hash getters.`);
+	}
+}
+
 export function propertyName(name: string | symbol): string {
 	return typeof name === "string" ? name : (name.description ?? name.toString());
 }

@@ -16,7 +16,7 @@
 
 - Built for modern TC39 decorators in TypeScript 5+
 - Covers sync and async method workflows
-- Includes caching, retry, timeout, debounce, throttling, delegation, and rate limiting
+- Includes caching, retry, timeout, debounce, throttling, delegation, rate limiting, lazy evaluation, and resource disposal
 
 ## Installation
 
@@ -62,7 +62,7 @@ features and supports standard decorators:
 > [!TIP]
 > Decorators that use default behavior can be written as `@decorator` or
 > `@decorator()`. This applies to `bind`, `bindAll`, `cancelPrevious`,
-> `cache`, `cacheAsync`, `delegate`, `execTime`, `readonly`, and
+> `cache`, `cacheAsync`, `delegate`, `dispose`, `execTime`, `lazy`, `readonly`, and
 > `throttleAsync`.
 
 ### Basic Example
@@ -124,10 +124,11 @@ class DirectoryService {
 ### Accessor Decorators
 
 `readonly` and `refreshable` are accessor decorators, so they must decorate
-`accessor` members.
+`accessor` members. `lazy` decorates `get` accessors directly.
 
 ```ts
 import {
+	lazy,
 	readonly,
 	refreshable,
 } from "decorator-toolkit";
@@ -135,6 +136,11 @@ import {
 class SessionStore {
 	@readonly
 	accessor id = crypto.randomUUID();
+
+	@lazy
+	get config(): object {
+		return buildExpensiveConfig(); // computed once per instance
+	}
 
 	@refreshable<SessionStore, number>({
 		dataProvider: "loadCounter",
@@ -207,9 +213,11 @@ examples adapted from the legacy site.
 | [debounce](docs/decorators/debounce.md)              | Coalesces rapid method calls into a later single execution               |
 | [delegate](docs/decorators/delegate.md)              | Shares one in-flight async invocation across callers with the same key   |
 | [delay](docs/decorators/delay.md)                    | Schedules method execution after a fixed delay                           |
+| [dispose](docs/decorators/dispose.md)                | Wires a method to `Symbol.dispose` or `Symbol.asyncDispose`              |
 | [execTime](docs/decorators/exec-time.md)             | Reports method execution duration                                        |
 | [cache](docs/decorators/cache.md)                    | Caches synchronous method results                                        |
 | [cacheAsync](docs/decorators/cache-async.md)         | Caches async results and deduplicates pending async calls                |
+| [lazy](docs/decorators/lazy.md)                      | Computes a getter once per instance and caches the result                |
 | [multiDispatch](docs/decorators/multi-dispatch.md)   | Starts multiple async attempts and resolves on the first success         |
 | [onError](docs/decorators/on-error.md)               | Forwards thrown or rejected errors to a handler                          |
 | [rateLimit](docs/decorators/rate-limit.md)           | Limits how many calls may happen within a configured time window         |
