@@ -1,136 +1,81 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
+import { perInstance } from "../common/state.js";
 import type { Method } from "../common/types.js";
 import {
-	isWeakMapKey,
+	isPromise,
 	resolveCallable,
 } from "../common/utils.js";
 
 export type KeyResolver<Args extends unknown[] = unknown[]> = (...args: Args) => string;
 
-export interface CacheStore<Value> {
-	set: (key: string, value: Value) => unknown;
-	get: (key: string) => Value | null | undefined;
-	delete: (key: string) => unknown;
-	has: (key: string) => boolean;
-}
-
-export interface CacheConfig<This = any, Value = unknown, Args extends unknown[] = unknown[]> {
-	store?: CacheStore<Value>;
-	keyResolver?: KeyResolver<Args> | keyof This;
+export interface CacheConfig<This = any, Args extends unknown[] = unknown[]> {
 	ttlMs?: number;
+	/** Default key is `JSON.stringify(args)`. */
+	keyResolver?: KeyResolver<Args> | keyof This;
 }
 
-type CacheDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+type CacheDecorator<This = any, Args extends unknown[] = unknown[]> = <Return = unknown>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ) => Method<This, Args, Return>;
 
-export function resolveCacheKey<This, Args extends unknown[]>(
-	instance: This,
-	keyResolver: KeyResolver<Args> | keyof This | undefined,
-	args: Args,
-): string {
-	if (keyResolver === undefined) {
-		return JSON.stringify(args);
-	}
+type Entry<Value> = { value: Value; expiresAt: number; };
 
-	return resolveCallable<This, string>(instance, keyResolver)(...args);
-}
+/**
+ * Memoizes results per instance, keyed by arguments. Works for async methods too:
+ * the promise is cached (so concurrent calls share it) and evicted if it rejects.
+ */
+export function cache<This = any, Args extends unknown[] = unknown[], Return = unknown>(
+	value: Method<This, Args, Return>,
+	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+): Method<This, Args, Return>;
+export function cache<This = any, Args extends unknown[] = unknown[]>(
+	input?: number | CacheConfig<This, Args>,
+): CacheDecorator<This, Args>;
+export function cache(...args: unknown[]): unknown {
+	return overloaded(args, (input?: number | CacheConfig): CacheDecorator => (value, context) => {
+		assertMethodDecorator("cache", value, context);
+		type This = ThisParameterType<typeof value>;
+		type Return = ReturnType<typeof value>;
 
-export function normalizeCacheInput<This, Value, Args extends unknown[]>(
-	input?: CacheConfig<This, Value, Args> | number,
-): CacheConfig<This, Value, Args> {
-	if (typeof input === "number") {
-		return {
-			ttlMs: input,
-		};
-	}
+		const { ttlMs = Infinity, keyResolver } = typeof input === "number" ? { ttlMs: input } : input ?? {};
+		const slot = perInstance(() => new Map<string, Entry<Return>>());
 
-	return input ?? {};
-}
+		return function(this: This, ...callArgs: Parameters<typeof value>): Return {
+			const store = slot(this);
+			const key = keyResolver === undefined
+				? JSON.stringify(callArgs)
+				: resolveCallable<This, string>(this, keyResolver)(...callArgs);
+			const now = performance.now();
+			const hit = store.get(key);
 
-export function scheduleCacheExpiration<Value>(store: CacheStore<Value>, key: string, ttlMs: number): void {
-	setTimeout(() => {
-		store.delete(key);
-	}, ttlMs);
-}
-
-export function createCachedMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
-	originalMethod: Method<This, Args, Return>,
-	input?: CacheConfig<This, Return, Args> | number,
-): Method<This, Args, Return> {
-	const resolvedConfig = normalizeCacheInput(input);
-	const storesByInstance = new WeakMap<object, CacheStore<Return>>();
-	const fallbackStore: CacheStore<Return> = resolvedConfig.store ?? new Map<string, Return>();
-
-	const getStore = (instance: This): CacheStore<Return> => {
-		if (resolvedConfig.store !== undefined) {
-			return resolvedConfig.store;
-		}
-
-		if (!isWeakMapKey(instance)) {
-			return fallbackStore;
-		}
-
-		const instanceKey = instance as object;
-		const existingStore = storesByInstance.get(instanceKey);
-		if (existingStore !== undefined) {
-			return existingStore;
-		}
-
-		const store = new Map<string, Return>();
-		storesByInstance.set(instanceKey, store);
-		return store;
-	};
-
-	return function(this: This, ...args: Args): Return {
-		const store = getStore(this);
-		const key = resolveCacheKey(this, resolvedConfig.keyResolver, args);
-
-		if (!store.has(key)) {
-			const response = originalMethod.apply(this, args);
-			store.set(key, response);
-
-			if (resolvedConfig.ttlMs !== undefined) {
-				scheduleCacheExpiration(store, key, resolvedConfig.ttlMs);
+			if (hit !== undefined && hit.expiresAt > now) {
+				return hit.value;
 			}
-		}
 
-		return store.get(key) as Return;
-	};
-}
+			// ponytail: O(n) sweep on miss; index by expiry if stores get large
+			for (const [storedKey, entry] of store) {
+				if (entry.expiresAt <= now) {
+					store.delete(storedKey);
+				}
+			}
 
-export function cache<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
-	value: Method<This, Args, Value>,
-	context: ClassMethodDecoratorContext<This, Method<This, Args, Value>>,
-): Method<This, Args, Value>;
-export function cache<This = any, Value = unknown, Args extends unknown[] = unknown[]>(
-	input?: CacheConfig<This, Value, Args> | number,
-): CacheDecorator;
-export function cache(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-		input?: CacheConfig<This, Return, Args> | number,
-	): Method<This, Args, Return> => {
-		assertMethodDecorator("cache", value, decoratorContext);
-		return createCachedMethod(value, input as CacheConfig<This, Return, Args> | number);
-	};
+			const result = value.apply(this, callArgs);
+			const entry: Entry<Return> = { value: result, expiresAt: now + ttlMs };
+			store.set(key, entry);
 
-	if (isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as Method<any, unknown[], unknown>,
-			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,
-		);
-	}
+			if (isPromise(result)) {
+				result.catch(() => {
+					if (store.get(key) === entry) {
+						store.delete(key);
+					}
+				});
+			}
 
-	return <This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> => {
-		return decorate(value, decoratorContext, inputOrValue as CacheConfig<This, Return, Args> | number | undefined);
-	};
+			return result;
+		};
+	});
 }

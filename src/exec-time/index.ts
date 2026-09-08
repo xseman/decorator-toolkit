@@ -1,1 +1,1 @@
-export { type ExactTimeReportData, execTime, type ReportFunction } from "./exec-time.js";
+export * from "./exec-time.js";

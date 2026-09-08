@@ -10,7 +10,7 @@ import { before } from "./before.js";
 
 describe("before", () => {
 	test("throws when used on a field", () => {
-		const invalidBefore: any = before({ func: () => undefined });
+		const invalidBefore: any = before(() => undefined);
 
 		expect(() => {
 			class TestSubject {
@@ -34,7 +34,7 @@ describe("before", () => {
 				counter += 1;
 			}
 
-			@before<TestSubject>({ func: "beforeHook" })
+			@before<TestSubject>("beforeHook")
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -68,7 +68,7 @@ describe("before", () => {
 		};
 
 		class TestSubject {
-			@before<TestSubject>({ func: beforeFunc })
+			@before<TestSubject>(beforeFunc)
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -98,7 +98,7 @@ describe("before", () => {
 		};
 
 		class TestSubject {
-			@before<TestSubject>({ func: beforeFunc })
+			@before<TestSubject>(beforeFunc)
 			foo(): void {
 				this.goo();
 			}
@@ -125,10 +125,7 @@ describe("before", () => {
 		};
 
 		class TestSubject {
-			@before<TestSubject>({
-				func: beforeFunc,
-				wait: true,
-			})
+			@before<TestSubject>(beforeFunc, { wait: true })
 			foo(x: number): number {
 				return this.goo(x);
 			}
@@ -152,7 +149,7 @@ describe("before", () => {
 		};
 
 		class TestSubject {
-			@before<TestSubject>({ func: beforeFunc })
+			@before<TestSubject>(beforeFunc)
 			foo(x: number): number {
 				return x;
 			}

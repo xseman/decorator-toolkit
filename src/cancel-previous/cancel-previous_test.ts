@@ -6,7 +6,6 @@ import {
 
 import { sleep } from "../common/utils.js";
 import { cancelPrevious } from "./cancel-previous.js";
-import { CanceledPromise } from "./canceled-promise.js";
 
 describe("cancelPrevious", () => {
 	test("throws when used on a field", () => {
@@ -38,8 +37,8 @@ describe("cancelPrevious", () => {
 		let canceledCount = 0;
 
 		const first = subject.foo(10).catch((error) => {
-			expect(error).toBeInstanceOf(CanceledPromise);
-			expect((error as Error).message).toBe("canceled");
+			expect(error).toBeInstanceOf(DOMException);
+			expect((error as DOMException).name).toBe("AbortError");
 			canceledCount += 1;
 			return -1;
 		});
@@ -89,7 +88,7 @@ describe("cancelPrevious", () => {
 			await new TestSubject().foo();
 			throw new Error("should not reach here");
 		} catch (error) {
-			expect(error).not.toBeInstanceOf(CanceledPromise);
+			expect(error).not.toBeInstanceOf(DOMException);
 			expect((error as Error).message).toBe("server error");
 		}
 	});

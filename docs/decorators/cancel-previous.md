@@ -7,13 +7,8 @@ result matters.
 ## Import
 
 ```ts
-import {
-	CanceledPromise,
-	cancelPrevious,
-} from "decorator-toolkit/cancel-previous";
+import { cancelPrevious } from "decorator-toolkit/cancel-previous";
 ```
-
-For legacy TypeScript decorators, import from `decorator-toolkit/cancel-previous/legacy` or import `{ cancelPrevious }` from `decorator-toolkit/legacy`.
 
 ## Signature
 
@@ -26,10 +21,7 @@ cancelPrevious();
 ## Example
 
 ```ts
-import {
-	CanceledPromise,
-	cancelPrevious,
-} from "decorator-toolkit/cancel-previous";
+import { cancelPrevious } from "decorator-toolkit/cancel-previous";
 
 class SearchService {
 	@cancelPrevious
@@ -44,7 +36,7 @@ const first = service.search("app");
 const second = service.search("apple");
 
 first.catch((error) => {
-	if (error instanceof CanceledPromise) {
+	if (error.name === "AbortError") {
 		return;
 	}
 
@@ -58,12 +50,12 @@ await second;
 
 - `cancelPrevious` is an async method decorator.
 - Both `@cancelPrevious` and `@cancelPrevious()` use the default cancellation behavior.
-- It rejects the promise returned by the previous call. It does not abort the
-  underlying task automatically.
+- The previous promise rejects with a `DOMException` named `"AbortError"`, the
+  same error an aborted `fetch` produces. The underlying task is not aborted.
 - The most recent call continues normally.
 
 ## Related
 
 - [delegate](delegate.md)
-- [throttleAsync](throttle-async.md)
+- [concurrent](concurrent.md)
 - [timeout](timeout.md)

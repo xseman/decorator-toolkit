@@ -1,68 +1,26 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
+import { addDisposer } from "../common/dispose.js";
 import type { Method } from "../common/types.js";
 
 export interface DisposeConfig {
+	/** Wire to `Symbol.asyncDispose` (for `await using`) instead of `Symbol.dispose`. */
 	async?: boolean;
 }
 
-type DisposeDecorator = (
-	value: Method<any>,
-	context: ClassMethodDecoratorContext,
-) => void;
+type DisposeDecorator = (value: Method<any>, context: ClassMethodDecoratorContext) => void;
 
-function wire(
-	value: Method<any>,
-	decoratorContext: ClassMethodDecoratorContext,
-	config: DisposeConfig,
-): void {
-	assertMethodDecorator("dispose", value, decoratorContext);
-
-	const symbol = config.async ? Symbol.asyncDispose : Symbol.dispose;
-
-	if (typeof symbol !== "symbol") {
-		throw new Error(
-			`@dispose requires ${config.async ? "Symbol.asyncDispose" : "Symbol.dispose"}, which is not available in this runtime.`,
-		);
-	}
-
-	decoratorContext.addInitializer(function(this: any): void {
-		const instance = this as Record<PropertyKey, unknown>;
-		const previous = instance[symbol];
-
-		if (config.async) {
-			instance[symbol] = async function(this: unknown): Promise<void> {
-				if (typeof previous === "function") {
-					await (previous as () => unknown).call(this);
-				}
-				await value.call(this);
-			};
-		} else {
-			instance[symbol] = function(this: unknown): void {
-				if (typeof previous === "function") {
-					(previous as () => void).call(this);
-				}
-				(value as () => void).call(this);
-			};
-		}
-	});
-}
-
-export function dispose(
-	value: Method<any>,
-	context: ClassMethodDecoratorContext,
-): void;
+/** Wires the method to `Symbol.dispose` so `using` calls it. Multiple disposers run in declaration order. */
+export function dispose(value: Method<any>, context: ClassMethodDecoratorContext): void;
 export function dispose(config?: DisposeConfig): DisposeDecorator;
-export function dispose(inputOrValue?: unknown, context?: unknown): unknown {
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		wire(inputOrValue as Method<any>, context as ClassMethodDecoratorContext, {});
-		return;
-	}
+export function dispose(...args: unknown[]): unknown {
+	return overloaded(args, (config: DisposeConfig = {}): DisposeDecorator => (value, context) => {
+		assertMethodDecorator("dispose", value, context);
 
-	const config = (inputOrValue ?? {}) as DisposeConfig;
-	return (value: Method<any>, decoratorContext: ClassMethodDecoratorContext): void => {
-		wire(value, decoratorContext, config);
-	};
+		context.addInitializer(function(this: unknown): void {
+			addDisposer(this as object, value, config.async);
+		});
+	});
 }

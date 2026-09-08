@@ -5,7 +5,6 @@ import {
 } from "bun:test";
 
 import { sleep } from "../common/utils.js";
-import { TimeoutError } from "./timeout-error.js";
 import { timeout } from "./timeout.js";
 
 describe("timeout", () => {
@@ -38,8 +37,9 @@ describe("timeout", () => {
 			await subject.foo();
 			throw new Error("should not reach here");
 		} catch (error) {
-			expect(error).toBeInstanceOf(TimeoutError);
-			expect((error as Error).message).toBe(`timeout occurred after ${ms}`);
+			expect(error).toBeInstanceOf(DOMException);
+			expect((error as DOMException).name).toBe("TimeoutError");
+			expect((error as Error).message).toBe(`Timed out after ${ms} ms`);
 		}
 	});
 
@@ -89,7 +89,7 @@ describe("timeout", () => {
 			await subject.foo();
 			throw new Error("should not reach here");
 		} catch (error) {
-			expect(error).toBeInstanceOf(TimeoutError);
+			expect((error as DOMException).name).toBe("TimeoutError");
 		}
 	});
 });

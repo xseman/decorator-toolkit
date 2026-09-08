@@ -89,51 +89,6 @@ describe("retry", () => {
 		expect(subject.counter).toBe(3);
 	});
 
-	test("supports delay arrays and delay-array configs", async () => {
-		class ArrayRetries {
-			counter = 0;
-
-			@retry([50, 100])
-			foo(): Promise<string> {
-				this.counter += 1;
-				if (this.counter !== 3) {
-					return Promise.reject(new Error("no"));
-				}
-
-				return Promise.resolve("yes");
-			}
-		}
-
-		class ConfigRetries {
-			counter = 0;
-
-			@retry<ConfigRetries>({ delaysArray: [50, 100] })
-			foo(): Promise<string> {
-				this.counter += 1;
-				if (this.counter !== 3) {
-					return Promise.reject(new Error("no"));
-				}
-
-				return Promise.resolve("yes");
-			}
-		}
-
-		const first = new ArrayRetries();
-		const second = new ConfigRetries();
-		void first.foo();
-		void second.foo();
-
-		await sleep(25);
-		expect(first.counter).toBe(1);
-		expect(second.counter).toBe(1);
-		await sleep(50);
-		expect(first.counter).toBe(2);
-		expect(second.counter).toBe(2);
-		await sleep(150);
-		expect(first.counter).toBe(3);
-		expect(second.counter).toBe(3);
-	});
-
 	test("uses the default 1000ms delay for numeric retry input", async () => {
 		class TestSubject {
 			counter = 0;
@@ -206,20 +161,50 @@ describe("retry", () => {
 		await subject.goo();
 
 		expect(errors).toEqual(["no 1", "no 2"]);
-		expect(counts).toEqual([0, 1]);
+		expect(counts).toEqual([1, 2]);
 		expect(subject.decoratedCounter).toBe(3);
 	});
 
-	test("throws when both retries and delaysArray are provided", () => {
-		expect(() => {
-			class TestSubject {
-				@retry<TestSubject>({ retries: 3, delaysArray: [1, 2, 3] })
-				boo(): Promise<void> {
-					return Promise.resolve();
-				}
-			}
+	test("delay can be a function of the failed attempt", async () => {
+		const attempts: number[] = [];
 
-			return TestSubject;
-		}).toThrow("You can not provide both retries and delaysArray");
+		class TestSubject {
+			counter = 0;
+
+			@retry<TestSubject>({
+				retries: 2,
+				delay: (attempt) => {
+					attempts.push(attempt);
+					return attempt * 10;
+				},
+			})
+			foo(): Promise<string> {
+				this.counter += 1;
+				return this.counter < 3 ? Promise.reject(new Error("no")) : Promise.resolve("yes");
+			}
+		}
+
+		expect(await new TestSubject().foo()).toBe("yes");
+		expect(attempts).toEqual([1, 2]);
+	});
+
+	test("shouldRetry false rethrows immediately", async () => {
+		class TestSubject {
+			counter = 0;
+
+			@retry<TestSubject>({
+				retries: 3,
+				delay: 1,
+				shouldRetry: (error) => (error as Error).message !== "fatal",
+			})
+			foo(): Promise<string> {
+				this.counter += 1;
+				return Promise.reject(new Error(this.counter === 2 ? "fatal" : "transient"));
+			}
+		}
+
+		const subject = new TestSubject();
+		await expect(subject.foo()).rejects.toThrow("fatal");
+		expect(subject.counter).toBe(2);
 	});
 });

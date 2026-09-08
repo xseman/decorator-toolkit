@@ -9,14 +9,12 @@ a fallback value, start recovery work, or rethrow.
 import { onError } from "decorator-toolkit/on-error";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/on-error/legacy` or import `{ onError }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
-onError<This, Return, Args>({
-	func: keyof This | ((error: unknown, args: Args) => Return | Promise<Return>),
-})
+onError<This, Return, Args>(
+	handler: keyof This | ((error: unknown, args: Args) => Return | Promise<Return>),
+)
 ```
 
 ## Example
@@ -29,9 +27,7 @@ class ProfileLoader {
 		return Promise.resolve({ id: args[0], cached: true });
 	}
 
-	@onError<ProfileLoader, { id: string; cached: true; }, [string]>({
-		func: "recover",
-	})
+	@onError<ProfileLoader, { id: string; cached: true; }, [string]>("recover")
 	async load(id: string): Promise<{ id: string; cached: true; }> {
 		throw new Error(`profile:${id}:failed`);
 	}
@@ -43,9 +39,12 @@ class ProfileLoader {
 - `onError` is a method decorator.
 - The handler receives the error and the original arguments.
 - It handles both synchronous throws and async rejections.
+- This is the fallback pattern: stack it above `retry`, `timeout`, `rateLimit`
+  or `circuitBreaker` to turn their errors into a default value.
 
 ## Related
 
 - [after](after.md)
 - [before](before.md)
+- [circuitBreaker](circuit-breaker.md)
 - [retry](retry.md)

@@ -9,5 +9,3 @@ export type AsyncMethod<This, Args extends unknown[] = unknown[], Return = unkno
 	this: This,
 	...args: Args
 ) => Promise<Return>;
-
-export type UnboxPromise<T extends Promise<unknown>> = T extends Promise<infer Value> ? Value : never;

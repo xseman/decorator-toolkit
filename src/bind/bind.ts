@@ -1,42 +1,29 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
-import type { Method } from "../common/types.js";
-import { resolveCallable } from "../common/utils.js";
+import type {
+	AnyFunction,
+	Method,
+} from "../common/types.js";
 
-type BindDecorator<This = any> = <Args extends unknown[] = unknown[], Return = unknown>(
+type BindDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ) => void;
 
+/** Binds the method to its instance (or class, for static methods) at construction. */
 export function bind<This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ): void;
-export function bind<This = any>(): BindDecorator<This>;
-export function bind(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: BindDecorator = function<This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): void {
-		assertMethodDecorator("bind", value, decoratorContext);
-		const methodName = decoratorContext.name;
+export function bind(): BindDecorator;
+export function bind(...args: unknown[]): unknown {
+	return overloaded(args, (): BindDecorator => (value, context) => {
+		assertMethodDecorator("bind", value, context);
 
-		decoratorContext.addInitializer(function(this: This): void {
-			(this as Record<PropertyKey, unknown>)[methodName as PropertyKey] = resolveCallable(
-				this,
-				methodName as keyof This,
-			) as Method<This, Args, Return>;
+		context.addInitializer(function(this: unknown): void {
+			(this as Record<PropertyKey, unknown>)[context.name] = (value as AnyFunction).bind(this);
 		});
-	};
-
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as Method<any, unknown[], unknown>,
-			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,
-		);
-	}
-
-	return decorate;
+	});
 }

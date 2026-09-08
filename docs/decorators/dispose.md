@@ -10,8 +10,6 @@ called automatically through `Symbol.dispose` or `Symbol.asyncDispose`.
 import { dispose } from "decorator-toolkit/dispose";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/dispose/legacy` or import `{ dispose }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
@@ -83,9 +81,9 @@ class Service {
 - Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
-- Requires TypeScript 5.2+ and a runtime that supports `Symbol.dispose` / `Symbol.asyncDispose`. This decorator specifically requires Node.js ≥ 18.18 or Bun ≥ 1.0, even though the package's engine constraint is `>=18.0.0`.
+- Requires TypeScript 5.2+ and a runtime with `Symbol.dispose` / `Symbol.asyncDispose` (Node 22+, Bun, current browsers).
+- [periodic](periodic.md) registers its own disposer the same way, so `using` also stops timers.
 
 ## Related
 
-- [onError](on-error.md)
-- [after](after.md)
+- [periodic](periodic.md)

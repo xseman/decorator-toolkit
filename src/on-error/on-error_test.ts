@@ -9,7 +9,7 @@ import { onError } from "./on-error.js";
 
 describe("onError", () => {
 	test("throws when used on a field", () => {
-		const invalidOnError: any = onError({ func: () => undefined });
+		const invalidOnError: any = onError(() => undefined);
 
 		expect(() => {
 			class TestSubject {
@@ -25,7 +25,7 @@ describe("onError", () => {
 		class TestSubject {
 			value = 3;
 
-			@onError<TestSubject, void, [number]>({ func: "handleError" })
+			@onError<TestSubject, void, [number]>("handleError")
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -61,7 +61,7 @@ describe("onError", () => {
 		};
 
 		class TestSubject {
-			@onError<TestSubject, void, [number]>({ func: handler })
+			@onError<TestSubject, void, [number]>(handler)
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -90,7 +90,7 @@ describe("onError", () => {
 		};
 
 		class TestSubject {
-			@onError<TestSubject, Promise<void>, [number]>({ func: handler })
+			@onError<TestSubject, Promise<void>, [number]>(handler)
 			foo(_x: number): Promise<void> {
 				return Promise.reject(new Error("error"));
 			}
@@ -108,7 +108,7 @@ describe("onError", () => {
 		};
 
 		class TestSubject {
-			@onError<TestSubject, Promise<void>>({ func: handler })
+			@onError<TestSubject, Promise<void>>(handler)
 			foo(): Promise<void> {
 				return Promise.resolve();
 			}
@@ -128,7 +128,7 @@ describe("onError", () => {
 		};
 
 		class TestSubject {
-			@onError<TestSubject, void, [number]>({ func: handler })
+			@onError<TestSubject, void, [number]>(handler)
 			foo(_x: number): void {
 				throw new Error("arr");
 			}

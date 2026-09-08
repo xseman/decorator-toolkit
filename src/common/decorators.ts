@@ -17,16 +17,17 @@ export function isDecoratorCall(context: unknown): boolean {
 	return isRuntimeDecoratorContext(context);
 }
 
-export function isMethodDecoratorCall(value: unknown, context: unknown): boolean {
-	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "method";
-}
-
-export function isClassDecoratorCall(value: unknown, context: unknown): boolean {
-	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "class";
-}
-
-export function isAccessorDecoratorCall(value: unknown, context: unknown): boolean {
-	return value !== null && typeof value === "object" && isRuntimeDecoratorContext(context) && context.kind === "accessor";
+/**
+ * Supports both `@decorator` and `@decorator(input)`. `build(input)` returns the
+ * decorator; when called bare, the decorator is built without input and applied.
+ */
+export function overloaded<Input, Decorator extends (value: any, context: any) => unknown>(
+	args: unknown[],
+	build: (input?: Input) => Decorator,
+): Decorator | ReturnType<Decorator> {
+	return isDecoratorCall(args[1])
+		? build()(args[0], args[1]) as ReturnType<Decorator>
+		: build(args[0] as Input | undefined);
 }
 
 export function assertMethodDecorator(
@@ -61,10 +62,6 @@ export function assertAccessorDecorator(
 	if (context.kind !== "accessor" || value === null || typeof value !== "object" || context.private) {
 		throw new Error(`@${decoratorName} is applicable only on accessors.`);
 	}
-}
-
-export function isGetterDecoratorCall(value: unknown, context: unknown): boolean {
-	return typeof value === "function" && isRuntimeDecoratorContext(context) && context.kind === "getter";
 }
 
 export function assertGetterDecorator(

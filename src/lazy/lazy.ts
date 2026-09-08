@@ -1,42 +1,35 @@
 import {
 	assertGetterDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
+import { perInstance } from "../common/state.js";
 
 type LazyDecorator = <This, Value>(
 	value: (this: This) => Value,
 	context: ClassGetterDecoratorContext<This, Value>,
 ) => (this: This) => Value;
 
+/** Computes a getter once per instance and returns the cached value afterwards. */
 export function lazy<This, Value>(
 	value: (this: This) => Value,
 	context: ClassGetterDecoratorContext<This, Value>,
 ): (this: This) => Value;
 export function lazy(): LazyDecorator;
-export function lazy(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: LazyDecorator = <This, Value>(
-		value: (this: This) => Value,
-		decoratorContext: ClassGetterDecoratorContext<This, Value>,
-	): (this: This) => Value => {
-		assertGetterDecorator("lazy", value, decoratorContext as any);
+export function lazy(...args: unknown[]): unknown {
+	return overloaded(args, (): LazyDecorator => (value, context) => {
+		assertGetterDecorator("lazy", value, context);
+		type This = ThisParameterType<typeof value>;
+		type Value = ReturnType<typeof value>;
 
-		const cache = new WeakMap<object, Value>();
+		const slot = perInstance<{ value?: Value; }>(() => ({}));
 
 		return function(this: This): Value {
-			const self = this as object;
-			if (cache.has(self)) {
-				return cache.get(self) as Value;
+			const state = slot(this);
+			if (!("value" in state)) {
+				state.value = value.call(this);
 			}
 
-			const result = value.call(this);
-			cache.set(self, result);
-			return result;
+			return state.value as Value;
 		};
-	};
-
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(inputOrValue as (this: any) => unknown, context as ClassGetterDecoratorContext<any, unknown>);
-	}
-
-	return decorate;
+	});
 }

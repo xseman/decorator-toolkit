@@ -9,15 +9,13 @@ method returns a promise, the hook runs after the promise resolves.
 import { after } from "decorator-toolkit/after";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/after/legacy` or import `{ after }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
-after<This, Response, Args>({
-	func: keyof This | ((params: { args: Args; response: Response; }) => unknown),
-	wait?: boolean,
-})
+after<This, Response, Args>(
+	hook: keyof This | ((params: { args: Args; response: Response; }) => unknown),
+	options?: { wait?: boolean; },
+)
 ```
 
 ## Example
@@ -33,10 +31,7 @@ class OrdersService {
 		return Promise.resolve();
 	}
 
-	@after<OrdersService, string, [string]>({
-		func: "storeAudit",
-		wait: true,
-	})
+	@after<OrdersService, string, [string]>("storeAudit", { wait: true })
 	async create(orderId: string): Promise<string> {
 		return `order:${orderId}`;
 	}
@@ -46,7 +41,8 @@ class OrdersService {
 ## Notes
 
 - `after` is a method decorator.
-- The hook receives the original arguments and the method response.
+- `hook` is a function or the name of a method on the instance. It receives
+  the original arguments and the method response.
 - `wait` defaults to `false`. Without it, async methods pass the unresolved
   promise to the hook.
 

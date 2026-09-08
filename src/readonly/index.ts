@@ -1,1 +1,1 @@
-export { readonly } from "./readonly.js";
+export * from "./readonly.js";

@@ -1,83 +1,49 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
+import { perInstance } from "../common/state.js";
 import type { AsyncMethod } from "../common/types.js";
-import { isWeakMapKey } from "../common/utils.js";
-import { CanceledPromise } from "./canceled-promise.js";
 
 type CancelPreviousDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: AsyncMethod<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ) => AsyncMethod<This, Args, Return>;
 
-export function createCancelableMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
-	originalMethod: AsyncMethod<This, Args, Return>,
-): AsyncMethod<This, Args, Return> {
-	const rejectors = new WeakMap<object, (error: CanceledPromise) => void>();
-	let fallbackRejector: ((error: CanceledPromise) => void) | undefined;
-
-	return function(this: This, ...args: Args): Promise<Return> {
-		const getRejector = (): ((error: CanceledPromise) => void) | undefined => {
-			if (isWeakMapKey(this)) {
-				return rejectors.get(this as object);
-			}
-
-			return fallbackRejector;
-		};
-
-		const setRejector = (rejector?: (error: CanceledPromise) => void): void => {
-			if (isWeakMapKey(this)) {
-				if (rejector === undefined) {
-					rejectors.delete(this as object);
-					return;
-				}
-
-				rejectors.set(this as object, rejector);
-				return;
-			}
-
-			fallbackRejector = rejector;
-		};
-
-		getRejector()?.(new CanceledPromise());
-
-		return new Promise<Return>((resolve, reject) => {
-			const currentReject = (error: CanceledPromise): void => {
-				reject(error);
-			};
-
-			setRejector(currentReject);
-
-			originalMethod.apply(this, args).then(resolve, reject).finally(() => {
-				if (getRejector() === currentReject) {
-					setRejector(undefined);
-				}
-			});
-		});
-	};
-}
-
+/**
+ * A new call rejects the still-pending previous call with a `DOMException`
+ * named `"AbortError"` (the same error an aborted `fetch` produces).
+ */
 export function cancelPrevious<This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: AsyncMethod<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
 ): AsyncMethod<This, Args, Return>;
 export function cancelPrevious(): CancelPreviousDecorator;
-export function cancelPrevious(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: CancelPreviousDecorator = function<This, Args extends unknown[] = unknown[], Return = unknown>(
+export function cancelPrevious(...args: unknown[]): unknown {
+	return overloaded(args, (): CancelPreviousDecorator =>
+	<This, Args extends unknown[], Return>(
 		value: AsyncMethod<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("cancelPrevious", value, decoratorContext);
-		return createCancelableMethod(value);
-	};
+		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+	): AsyncMethod<This, Args, Return> => {
+		assertMethodDecorator("cancelPrevious", value, context);
 
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as AsyncMethod<any, unknown[], unknown>,
-			context as ClassMethodDecoratorContext<any, AsyncMethod<any, unknown[], unknown>>,
-		);
-	}
+		const slot = perInstance<{ current?: AbortController; }>(() => ({}));
 
-	return decorate;
+		return function(this: This, ...callArgs: Args): Promise<Return> {
+			const state = slot(this);
+			state.current?.abort(new DOMException("Superseded by a newer call", "AbortError"));
+
+			const controller = new AbortController();
+			state.current = controller;
+
+			return new Promise<Return>((resolve, reject) => {
+				controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true });
+				value.apply(this, callArgs).then(resolve, reject).finally(() => {
+					if (state.current === controller) {
+						state.current = undefined;
+					}
+				});
+			});
+		};
+	});
 }

@@ -5,42 +5,30 @@ import {
 	resolveCallable,
 } from "../common/utils.js";
 
-export interface OnErrorConfig<This = any, Return = unknown, Args extends unknown[] = unknown[]> {
-	func: OnErrorHandler<Return, Args> | keyof This;
-}
+export type OnErrorHandler<Return = unknown, Args extends unknown[] = unknown[]> = (
+	error: unknown,
+	args: Args,
+) => Return | Promise<Awaited<Return>>;
 
-export type OnErrorHandler<Return = unknown, Args extends unknown[] = unknown[]> = (error: any, args: Args) => Return | Promise<Awaited<Return>>;
-
-export function createOnErrorMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
-	originalMethod: Method<This, Args, Return>,
-	config: OnErrorConfig<This, Return, Args>,
-): Method<This, Args, Return> {
-	return function(this: This, ...args: Args): Return {
-		const onErrorFunc = resolveCallable<This, Return | Promise<Awaited<Return>>>(this, config.func);
-
-		try {
-			const result = originalMethod.apply(this, args);
-			if (isPromise(result)) {
-				return result.catch((error) => {
-					return onErrorFunc(error, args);
-				}) as Return;
-			}
-
-			return result;
-		} catch (error) {
-			return onErrorFunc(error, args) as Return;
-		}
-	};
-}
-
+/** Fallback: a thrown error or rejection is passed to `handler`, whose result becomes the return value. */
 export function onError<This = any, Return = unknown, Args extends unknown[] = unknown[]>(
-	config: OnErrorConfig<This, Return, Args>,
+	handler: OnErrorHandler<Return, Args> | keyof This,
 ) {
 	return function(
 		value: Method<This, Args, Return>,
 		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 	): Method<This, Args, Return> {
 		assertMethodDecorator("onError", value, context);
-		return createOnErrorMethod(value, config);
+
+		return function(this: This, ...args: Args): Return {
+			const handle = resolveCallable<This, Return | Promise<Awaited<Return>>>(this, handler) as OnErrorHandler<Return, Args>;
+
+			try {
+				const result = value.apply(this, args);
+				return isPromise(result) ? result.catch((error) => handle(error, args)) as Return : result;
+			} catch (error) {
+				return handle(error, args) as Return;
+			}
+		};
 	};
 }

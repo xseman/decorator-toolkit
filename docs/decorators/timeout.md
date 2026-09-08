@@ -5,13 +5,8 @@ Reject an async method when it takes longer than an allowed amount of time.
 ## Import
 
 ```ts
-import {
-	timeout,
-	TimeoutError,
-} from "decorator-toolkit/timeout";
+import { timeout } from "decorator-toolkit/timeout";
 ```
-
-For legacy TypeScript decorators, import from `decorator-toolkit/timeout/legacy` or import `{ timeout }` from `decorator-toolkit/legacy`.
 
 ## Signature
 
@@ -22,10 +17,7 @@ timeout(ms: number)
 ## Example
 
 ```ts
-import {
-	timeout,
-	TimeoutError,
-} from "decorator-toolkit/timeout";
+import { timeout } from "decorator-toolkit/timeout";
 
 class ReportService {
 	@timeout(250)
@@ -40,7 +32,7 @@ const service = new ReportService();
 try {
 	await service.build();
 } catch (error) {
-	if (error instanceof TimeoutError) {
+	if (error.name === "TimeoutError") {
 		console.error(error.message);
 	}
 }
@@ -49,11 +41,13 @@ try {
 ## Notes
 
 - `timeout` is an async method decorator.
-- When the limit is exceeded, the returned promise rejects with `TimeoutError`.
+- When the limit is exceeded, the returned promise rejects with a
+  `DOMException` named `"TimeoutError"`, the same error `fetch` produces with
+  `AbortSignal.timeout`, so one handler covers both.
 - The internal timer is cleared when the method resolves or rejects.
 
 ## Related
 
 - [cancelPrevious](cancel-previous.md)
+- [circuitBreaker](circuit-breaker.md)
 - [retry](retry.md)
-- [throttleAsync](throttle-async.md)

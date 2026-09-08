@@ -9,8 +9,6 @@ reads return the cached value without invoking the getter again.
 import { lazy } from "decorator-toolkit/lazy";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/lazy/legacy` or import `{ lazy }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
@@ -42,10 +40,9 @@ console.info(builder.schema); // cached
 - Both `@lazy` and `@lazy()` use the same behavior.
 - The getter body is called at most once per instance; the result is cached for the lifetime of the instance.
 - Falsy results (`null`, `0`, `""`, `false`) are cached correctly.
-- The legacy variant decorates getter/setter accessors instead and `WeakMap`-keys on the instance, falling back gracefully if the instance is not a valid `WeakMap` key.
 - Private getters are not supported.
 
 ## Related
 
 - [cache](cache.md)
-- [readonly](readonly.md)
+- [runOnce](run-once.md)

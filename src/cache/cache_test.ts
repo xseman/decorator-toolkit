@@ -56,32 +56,6 @@ describe("cache", () => {
 		}).toThrow("@cache is applicable only on methods.");
 	});
 
-	test("uses a provided store", async () => {
-		const store = new Map<string, number>();
-
-		class TestSubject {
-			@cache<TestSubject, number>({ store, ttlMs: 30 })
-			foo(): number {
-				return this.goo();
-			}
-
-			goo(): number {
-				return 1;
-			}
-		}
-
-		const spy = spyOn(TestSubject.prototype, "goo");
-		const subject = new TestSubject();
-		subject.foo();
-		await sleep(10);
-		subject.foo();
-		expect(spy.mock.calls).toHaveLength(1);
-
-		store.delete("[]");
-		subject.foo();
-		expect(spy.mock.calls).toHaveLength(2);
-	});
-
 	test("supports key resolvers as functions and method names", () => {
 		const mapperCalls: string[] = [];
 
@@ -91,7 +65,7 @@ describe("cache", () => {
 				return `${x}_${y}`;
 			}
 
-			@cache<TestSubject, string, [string, string]>({
+			@cache<TestSubject, [string, string]>({
 				keyResolver: (x, y) => {
 					mapperCalls.push(`fn:${x}_${y}`);
 					return `${x}_${y}`;
@@ -101,7 +75,7 @@ describe("cache", () => {
 				return this.goo(x, y);
 			}
 
-			@cache<TestSubject, string, [string, string]>({ keyResolver: "mapper" })
+			@cache<TestSubject, [string, string]>({ keyResolver: "mapper" })
 			fooWithNamedMapper(x: string, y: string): string {
 				return this.goo(x, y);
 			}
@@ -123,23 +97,6 @@ describe("cache", () => {
 		expect(mapperCalls).toEqual(["fn:x_y", "fn:x_y", "x_y", "x_y"]);
 	});
 
-	test("does not clean the default store without ttl", async () => {
-		const store = new Map<string, number>();
-
-		class TestSubject {
-			@cache<TestSubject, number>({ store })
-			foo(): number {
-				return 1;
-			}
-		}
-
-		const subject = new TestSubject();
-		subject.foo();
-		expect(store.size).toBe(1);
-		await sleep(50);
-		expect(store.size).toBe(1);
-	});
-
 	test("keeps default stores isolated per instance", () => {
 		class TestSubject {
 			calls = 0;
@@ -159,5 +116,46 @@ describe("cache", () => {
 		expect(second.foo(1)).toBe(2);
 		expect(first.calls).toBe(1);
 		expect(second.calls).toBe(1);
+	});
+
+	test("does not expire without ttl", async () => {
+		class TestSubject {
+			calls = 0;
+
+			@cache()
+			foo(): number {
+				this.calls += 1;
+				return this.calls;
+			}
+		}
+
+		const subject = new TestSubject();
+		expect(subject.foo()).toBe(1);
+		await sleep(30);
+		expect(subject.foo()).toBe(1);
+	});
+
+	test("shares an in-flight promise and evicts it when it rejects", async () => {
+		class TestSubject {
+			calls = 0;
+
+			@cache
+			async foo(): Promise<number> {
+				this.calls += 1;
+				if (this.calls === 1) {
+					throw new Error("boom");
+				}
+
+				return this.calls;
+			}
+		}
+
+		const subject = new TestSubject();
+		const first = subject.foo();
+		expect(subject.foo()).toBe(first);
+		await expect(first).rejects.toThrow("boom");
+		expect(await subject.foo()).toBe(2);
+		expect(await subject.foo()).toBe(2);
+		expect(subject.calls).toBe(2);
 	});
 });

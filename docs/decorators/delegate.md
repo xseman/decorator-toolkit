@@ -1,15 +1,13 @@
 # delegate
 
-Share one in-flight async call across callers that resolve to the same key.
-This avoids duplicated concurrent work for identical requests.
+Share one in-flight async call across callers that resolve to the same key
+(singleflight). This avoids duplicated concurrent work for identical requests.
 
 ## Import
 
 ```ts
 import { delegate } from "decorator-toolkit/delegate";
 ```
-
-For legacy TypeScript decorators, import from `decorator-toolkit/delegate/legacy` or import `{ delegate }` from `decorator-toolkit/legacy`.
 
 ## Signature
 
@@ -51,5 +49,5 @@ class UserDirectory {
 ## Related
 
 - [cancelPrevious](cancel-previous.md)
-- [cacheAsync](cache-async.md)
-- [throttleAsync](throttle-async.md)
+- [cache](cache.md)
+- [concurrent](concurrent.md)

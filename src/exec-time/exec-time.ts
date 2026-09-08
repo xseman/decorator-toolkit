@@ -1,6 +1,6 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	overloaded,
 } from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import {
@@ -8,83 +8,50 @@ import {
 	resolveCallable,
 } from "../common/utils.js";
 
-export type ReportFunction<Result = unknown, Args extends unknown[] = unknown[]> = (data: ExactTimeReportData<Result, Args>) => unknown;
-
 export interface ExactTimeReportData<Result = unknown, Args extends unknown[] = unknown[]> {
 	args: Args;
 	result: Result;
+	/** Milliseconds, from `performance.now()`. */
 	execTime: number;
 }
 
-const defaultReporter: ReportFunction = (data): void => {
-	console.info(data.execTime);
-};
+export type ReportFunction<Result = unknown, Args extends unknown[] = unknown[]> = (data: ExactTimeReportData<Result, Args>) => unknown;
 
-type ExecTimeDecorator = <This, Args extends unknown[] = unknown[], Return = unknown>(
+type ExecTimeDecorator<This = any, Args extends unknown[] = unknown[]> = <Return = unknown>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ) => Method<This, Args, Return>;
 
-export function createExecTimeMethod<This, Args extends unknown[] = unknown[], Return = unknown>(
-	originalMethod: Method<This, Args, Return>,
-	arg?: ReportFunction<Awaited<Return>, Args> | keyof This,
-): Method<This, Args, Return> {
-	const input = arg ?? defaultReporter;
+const defaultReporter: ReportFunction = (data) => console.info(data.execTime);
 
-	return function(this: This, ...args: Args): Return {
-		const reporter = resolveCallable<This, unknown>(this, input);
-		const start = Date.now();
-		const result = originalMethod.apply(this, args);
-
-		if (isPromise(result)) {
-			return Promise.resolve(result).then((resolvedResult) => {
-				reporter({
-					args,
-					result: resolvedResult,
-					execTime: Date.now() - start,
-				});
-				return resolvedResult;
-			}) as Return;
-		}
-
-		reporter({
-			args,
-			result,
-			execTime: Date.now() - start,
-		});
-		return result;
-	};
-}
-
+/** Reports how long each call took to `reporter` (default: `console.info`). Async methods are timed until they settle. */
 export function execTime<This = any, Return = unknown, Args extends unknown[] = unknown[]>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ): Method<This, Args, Return>;
 export function execTime<This = any, Return = unknown, Args extends unknown[] = unknown[]>(
-	arg?: ReportFunction<Awaited<Return>, Args> | keyof This,
-): ExecTimeDecorator;
-export function execTime(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate = <This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-		reporterArg?: ReportFunction<Awaited<Return>, Args> | keyof This,
-	): Method<This, Args, Return> => {
-		assertMethodDecorator("execTime", value, decoratorContext);
-		return createExecTimeMethod(value, reporterArg);
-	};
+	reporter?: ReportFunction<Awaited<Return>, Args> | keyof This,
+): ExecTimeDecorator<This, Args>;
+export function execTime(...args: unknown[]): unknown {
+	return overloaded(args, (reporter: ReportFunction | PropertyKey = defaultReporter): ExecTimeDecorator => (value, context) => {
+		assertMethodDecorator("execTime", value, context);
+		type This = ThisParameterType<typeof value>;
+		type Return = ReturnType<typeof value>;
 
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as Method<any, unknown[], unknown>,
-			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,
-		);
-	}
+		return function(this: This, ...callArgs: Parameters<typeof value>): Return {
+			const report = resolveCallable<This, unknown>(this, reporter as keyof This) as ReportFunction;
+			const start = performance.now();
+			const result = value.apply(this, callArgs);
 
-	const reporterArg = inputOrValue as ReportFunction<unknown, unknown[]> | PropertyKey | undefined;
-	return <This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> => {
-		return decorate(value, decoratorContext, reporterArg as ReportFunction<Awaited<Return>, Args> | keyof This | undefined);
-	};
+			if (isPromise(result)) {
+				return result.then((resolved) => {
+					report({ args: callArgs, result: resolved, execTime: performance.now() - start });
+					return resolved;
+				}) as Return;
+			}
+
+			report({ args: callArgs, result, execTime: performance.now() - start });
+			return result;
+		};
+	});
 }
