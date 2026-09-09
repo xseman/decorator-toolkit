@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/xseman/decorator-toolkit/compare/v0.4.0...v0.5.0) (2026-09-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* simplify the decorator surface, add circuitBreaker, accept both call forms ([#11](https://github.com/xseman/decorator-toolkit/issues/11))
+
+### Features
+
+* simplify the decorator surface, add circuitBreaker, accept both call forms ([#11](https://github.com/xseman/decorator-toolkit/issues/11)) ([f4cd757](https://github.com/xseman/decorator-toolkit/commit/f4cd75729f5cbe5bba51aefd568e101d57deff08))
+
+
+### Maintenance
+
+* skip the coverage comment on release pull requests ([503af3a](https://github.com/xseman/decorator-toolkit/commit/503af3a4d3cee8cf0bb913eedb6c4ca9ba43b9cf))
+
 ## [0.4.0](https://github.com/xseman/decorator-toolkit/compare/v0.3.0...v0.4.0) (2026-04-08)
 
 
