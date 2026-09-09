@@ -81,6 +81,8 @@ class Service {
 - Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
+- Under legacy `experimentalDecorators` the disposer is wired on the prototype
+  instead of on each instance.
 - Requires TypeScript 5.2+ and a runtime with `Symbol.dispose` / `Symbol.asyncDispose` (Node 22+, Bun, current browsers).
 - [periodic](periodic.md) registers its own disposer the same way, so `using` also stops timers.
 

@@ -112,7 +112,9 @@ describe("periodic", () => {
 		class TestSubject {
 			@periodic({
 				intervalMs: 15,
-				onError: (e) => errors.push(e),
+				onError: (e) => {
+					errors.push(e);
+				},
 			})
 			tick(): void {
 				callCount += 1;

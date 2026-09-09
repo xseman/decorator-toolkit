@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	type Dual,
+	methodDecorator,
+} from "../common/decorators.js";
 import { perInstance } from "../common/state.js";
 import type { Method } from "../common/types.js";
 import { isPromise } from "../common/utils.js";
@@ -14,9 +17,16 @@ export class CircuitOpenError extends Error {
 	override readonly name = "CircuitOpenError";
 
 	constructor(cause: unknown) {
-		super("Circuit is open", { cause });
+		super("Circuit is open", { cause: cause });
 	}
 }
+
+export type CircuitBreakerDecorator = Dual<
+	<This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: Method<This, Args, Return>,
+		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+	) => Method<This, Args, Return>
+>;
 
 type State = {
 	failures: number;
@@ -32,20 +42,15 @@ type State = {
  * `CircuitOpenError`; after `resetMs` one probe is admitted and its outcome closes
  * or re-opens the circuit.
  */
-export function circuitBreaker(config: CircuitBreakerConfig) {
+export function circuitBreaker(config: CircuitBreakerConfig): CircuitBreakerDecorator {
 	if (!(config.failures >= 1) || !(config.resetMs >= 0)) {
 		throw new Error("@circuitBreaker: failures must be >= 1 and resetMs >= 0.");
 	}
 
-	return function<This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> {
-		assertMethodDecorator("circuitBreaker", value, context);
-
+	return methodDecorator("circuitBreaker", (value) => {
 		const slot = perInstance<State>(() => ({ failures: 0, async: false, gen: 0 }));
 
-		return function(this: This, ...args: Args): Return {
+		return function(this: unknown, ...args: unknown[]): unknown {
 			const state = slot(this);
 			const now = performance.now();
 
@@ -53,7 +58,7 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
 				if (now - state.openedAt < config.resetMs) {
 					const error = new CircuitOpenError(state.lastError);
 					if (state.async) {
-						return Promise.reject(error) as Return;
+						return Promise.reject(error);
 					}
 					throw error;
 				}
@@ -102,7 +107,7 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
 							settle(false, error);
 							throw error;
 						},
-					) as Return;
+					);
 				}
 
 				settle(true);
@@ -112,5 +117,5 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
 				throw error;
 			}
 		};
-	};
+	});
 }

@@ -53,10 +53,10 @@ describe("onError", () => {
 	test("invokes a provided handler for sync errors", () => {
 		const captured: Array<{ message: string; args: [number]; }> = [];
 
-		const handler = (error: Error, args: [number]): void => {
+		const handler = (error: unknown, args: [number]): void => {
 			captured.push({
-				message: error.message,
-				args,
+				message: (error as Error).message,
+				args: args,
 			});
 		};
 
@@ -82,10 +82,10 @@ describe("onError", () => {
 	test("supports async handlers", async () => {
 		const captured: Array<{ message: string; args: [number]; }> = [];
 
-		const handler = async (error: Error, args: [number]): Promise<void> => {
+		const handler = async (error: unknown, args: [number]): Promise<void> => {
 			captured.push({
-				message: error.message,
-				args,
+				message: (error as Error).message,
+				args: args,
 			});
 		};
 
@@ -121,8 +121,8 @@ describe("onError", () => {
 	test("supports sync methods with async error handlers", async () => {
 		let calls = 0;
 
-		const handler = async (error: Error, args: [number]): Promise<void> => {
-			expect(error.message).toBe("arr");
+		const handler = async (error: unknown, args: [number]): Promise<void> => {
+			expect((error as Error).message).toBe("arr");
 			expect(args).toEqual([1]);
 			calls += 1;
 		};

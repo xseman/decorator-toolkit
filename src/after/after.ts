@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	type Dual,
+	methodDecorator,
+} from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import {
 	isPromise,
@@ -17,30 +20,31 @@ export interface AfterOptions {
 	wait?: boolean;
 }
 
+export type AfterDecorator<This = any, Args extends unknown[] = unknown[]> = Dual<
+	<Return = unknown>(
+		value: Method<This, Args, Return>,
+		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+	) => Method<This, Args, Return>
+>;
+
 /** Runs `hook` (a function or the name of a method on the instance) after the decorated method. */
 export function after<This = any, Response = unknown, Args extends unknown[] = unknown[]>(
 	hook: AfterFunc<Response, Args> | keyof This,
 	options: AfterOptions = {},
-) {
-	return function<Return = unknown>(
-		value: Method<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> {
-		assertMethodDecorator("after", value, context);
-
-		return function(this: This, ...args: Args): Return {
-			const afterFunc = resolveCallable<This, unknown>(this, hook) as AfterFunc<unknown, Args>;
+): AfterDecorator<This, Args> {
+	return methodDecorator("after", (value) =>
+		function(this: This, ...args: unknown[]): unknown {
+			const afterFunc = resolveCallable<This, unknown>(this, hook) as AfterFunc;
 			const response = value.apply(this, args);
 
 			if (options.wait && isPromise(response)) {
 				return response.then((resolved) => {
-					afterFunc({ args, response: resolved });
+					afterFunc({ args: args, response: resolved });
 					return resolved;
-				}) as Return;
+				});
 			}
 
-			afterFunc({ args, response });
+			afterFunc({ args: args, response: response });
 			return response;
-		};
-	};
+		});
 }

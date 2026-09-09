@@ -23,7 +23,8 @@
 
 ## Working expectations
 
-- Only standard TC39 decorators are implemented; `experimentalDecorators` projects use the `legacy()` adapter. Do not add per-decorator legacy variants
+- Every decorator accepts both the standard `(value, context)` and the legacy `(target, key, descriptor)` call form via `dual`/`methodDecorator` in `src/common/decorators.ts`; do not add separate legacy files
+- Write object literals with explicit `key: value` pairs; never use property shorthand, even when the key and the variable share a name
 - Keep decorator behavior consistent across sync and async variants when that consistency is part of the design
 - Preserve or deliberately revise existing implementation constraints based on code reality, not on outdated prose
 - After changing behavior or APIs, update documentation to reflect the implementation that now exists

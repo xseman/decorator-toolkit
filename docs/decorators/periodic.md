@@ -58,6 +58,8 @@ class HealthMonitor {
 - The timer is `unref`'d where supported, so it does not keep a Node process
   alive, but it does keep the instance reachable until disposed.
 - To poll a value into a field, assign it inside the method.
+- Not available under legacy `experimentalDecorators` (needs a class
+  initializer); applying it there throws at class definition.
 
 ## Related
 

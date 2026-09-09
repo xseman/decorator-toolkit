@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	type Dual,
+	methodDecorator,
+} from "../common/decorators.js";
 import type { AsyncMethod } from "../common/types.js";
 import {
 	resolveCallable,
@@ -17,7 +20,14 @@ export interface RetryConfig<This = any> {
 	onRetry?: OnRetry | keyof This;
 }
 
-export function retry<This = any>(input: number | RetryConfig<This>) {
+export type RetryDecorator<This = any> = Dual<
+	<Args extends unknown[] = unknown[], Return = unknown>(
+		value: AsyncMethod<This, Args, Return>,
+		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
+	) => AsyncMethod<This, Args, Return>
+>;
+
+export function retry<This = any>(input: number | RetryConfig<This>): RetryDecorator<This> {
 	const config = typeof input === "number" ? { retries: input } : input;
 
 	if (typeof config !== "object" || config === null || !Number.isInteger(config.retries) || config.retries < 0) {
@@ -26,13 +36,8 @@ export function retry<This = any>(input: number | RetryConfig<This>) {
 
 	const { retries, delay = 1000, shouldRetry = () => true } = config;
 
-	return function<Args extends unknown[] = unknown[], Return = unknown>(
-		value: AsyncMethod<This, Args, Return>,
-		context: ClassMethodDecoratorContext<This, AsyncMethod<This, Args, Return>>,
-	): AsyncMethod<This, Args, Return> {
-		assertMethodDecorator("retry", value, context);
-
-		return async function(this: This, ...args: Args): Promise<Return> {
+	return methodDecorator("retry", (value) =>
+		async function(this: This, ...args: unknown[]): Promise<unknown> {
 			const onRetry = config.onRetry === undefined
 				? undefined
 				: resolveCallable<This, void>(this, config.onRetry) as OnRetry;
@@ -49,6 +54,5 @@ export function retry<This = any>(input: number | RetryConfig<This>) {
 					await sleep(typeof delay === "function" ? delay(attempt, error) : delay);
 				}
 			}
-		};
-	};
+		});
 }

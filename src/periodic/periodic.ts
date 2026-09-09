@@ -1,4 +1,8 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	assertMethodDecorator,
+	type Dual,
+	dual,
+} from "../common/decorators.js";
 import { addDisposer } from "../common/dispose.js";
 import { createInterval } from "../common/timer.js";
 import type { Method } from "../common/types.js";
@@ -13,9 +17,13 @@ export interface PeriodicConfig<This = any> {
 	onError?: keyof This | ((error: unknown) => void | Promise<void>);
 }
 
-type PeriodicDecorator = (value: Method<any>, context: ClassMethodDecoratorContext<any>) => void;
+export type PeriodicDecorator = Dual<(value: Method<any>, context: ClassMethodDecoratorContext<any>) => void>;
 
-/** Calls the method every `intervalMs` from construction until the instance is disposed (`using`). */
+/**
+ * Calls the method every `intervalMs` from construction until the instance is
+ * disposed (`using`). Needs a class initializer, so it is not available with
+ * legacy `experimentalDecorators`.
+ */
 export function periodic<This>(config: PeriodicConfig<This>): PeriodicDecorator;
 export function periodic(intervalMs: number): PeriodicDecorator;
 export function periodic(input: number | PeriodicConfig): PeriodicDecorator {
@@ -25,43 +33,49 @@ export function periodic(input: number | PeriodicConfig): PeriodicDecorator {
 		throw new Error("@periodic: intervalMs must be a positive number.");
 	}
 
-	return function(value, context): void {
-		assertMethodDecorator("periodic", value, context);
+	return dual<PeriodicDecorator>(
+		(value, context: ClassMethodDecoratorContext) => {
+			assertMethodDecorator("periodic", value, context);
 
-		if (context.static) {
-			throw new Error("@periodic does not support static methods.");
-		}
-
-		context.addInitializer(function(this: object): void {
-			let running = false;
-
-			const run = async (): Promise<void> => {
-				try {
-					await value.call(this);
-				} catch (error) {
-					if (config.onError !== undefined) {
-						await resolveCallable<any, unknown>(this, config.onError)(error);
-					}
-				}
-			};
-
-			const tick = (): void => {
-				if (config.overlap !== "allow" && running) {
-					return;
-				}
-
-				running = true;
-				void run().catch(() => undefined).finally(() => {
-					running = false;
-				});
-			};
-
-			const handle = createInterval(tick, config.intervalMs);
-			addDisposer(this, () => handle.clear());
-
-			if (config.immediate) {
-				tick();
+			if (context.static) {
+				throw new Error("@periodic does not support static methods.");
 			}
-		});
-	};
+
+			context.addInitializer(function(this: unknown): void {
+				const instance = this as object;
+				let running = false;
+
+				const run = async (): Promise<void> => {
+					try {
+						await value.call(instance);
+					} catch (error) {
+						if (config.onError !== undefined) {
+							await resolveCallable<any, unknown>(instance, config.onError)(error);
+						}
+					}
+				};
+
+				const tick = (): void => {
+					if (config.overlap !== "allow" && running) {
+						return;
+					}
+
+					running = true;
+					void run().catch(() => undefined).finally(() => {
+						running = false;
+					});
+				};
+
+				const handle = createInterval(tick, config.intervalMs);
+				addDisposer(instance, () => handle.clear());
+
+				if (config.immediate) {
+					tick();
+				}
+			});
+		},
+		() => {
+			throw new Error("@periodic needs a class initializer, which is not available with experimentalDecorators.");
+		},
+	);
 }

@@ -41,6 +41,7 @@ console.info(builder.schema); // cached
 - The getter body is called at most once per instance; the result is cached for the lifetime of the instance.
 - Falsy results (`null`, `0`, `""`, `false`) are cached correctly.
 - Private getters are not supported.
+- Works the same under legacy `experimentalDecorators`.
 
 ## Related
 

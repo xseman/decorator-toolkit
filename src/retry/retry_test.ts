@@ -123,8 +123,8 @@ describe("retry", () => {
 		const errors: string[] = [];
 		const counts: number[] = [];
 
-		const onRetry = (error: Error, count: number): void => {
-			errors.push(error.message);
+		const onRetry = (error: unknown, count: number): void => {
+			errors.push((error as Error).message);
 			counts.push(count);
 		};
 
@@ -132,7 +132,7 @@ describe("retry", () => {
 			counter = 0;
 			decoratedCounter = 0;
 
-			@retry<TestSubject>({ retries: 3, delay: 10, onRetry })
+			@retry<TestSubject>({ retries: 3, delay: 10, onRetry: onRetry })
 			foo(): Promise<string> {
 				this.counter += 1;
 				if (this.counter < 3) {

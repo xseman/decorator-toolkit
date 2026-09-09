@@ -39,6 +39,12 @@ compiler configuration:
 }
 ```
 
+This package ships its types from source, so the compiler needs the globals it
+uses (`setTimeout`, `performance`, `DOMException`). A browser project gets them
+from `"lib": ["DOM", ...]`; a Node project needs `@types/node`, listed in
+`"types"` when you are on TypeScript 7, which no longer includes every `@types`
+package automatically.
+
 > [!NOTE]
 > Method decorators apply to methods only, `bindAll` applies to classes,
 > `readonly` applies to `accessor` members and `lazy` to `get` accessors.
@@ -150,21 +156,12 @@ import {
 ### Legacy `experimentalDecorators` projects
 
 TypeORM, NestJS and similar stacks require `experimentalDecorators`, which
-switches the whole compilation to the old decorator signature. Wrap any method
-decorator with `legacy` there:
-
-```ts
-import { retry } from "decorator-toolkit";
-import { legacy } from "decorator-toolkit/legacy";
-
-class Api {
-	@legacy(retry(3))
-	async load(): Promise<void> {}
-}
-```
-
-All wrapping decorators work this way; `bind`, `dispose`, `periodic`, `readonly`
-and `lazy` have no legacy form. See [docs/legacy.md](docs/legacy.md).
+switches the whole compilation to the old decorator signature. Every decorator
+here detects that call form at runtime, so the same imports and the same
+`@retry(3)` work in both worlds. Differences under `experimentalDecorators`:
+`bind` binds on first access instead of at construction, `dispose` wires the
+prototype, `readonly` and `lazy` decorate get/set accessors, and `periodic` is
+unavailable because it needs a class initializer.
 
 ## Available Decorators
 

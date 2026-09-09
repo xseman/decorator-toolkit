@@ -1,5 +1,6 @@
 import {
-	assertMethodDecorator,
+	type Dual,
+	methodDecorator,
 	overloaded,
 } from "../common/decorators.js";
 import { perInstance } from "../common/state.js";
@@ -17,12 +18,14 @@ export interface CacheConfig<This = any, Args extends unknown[] = unknown[]> {
 	keyResolver?: KeyResolver<Args> | keyof This;
 }
 
-type CacheDecorator<This = any, Args extends unknown[] = unknown[]> = <Return = unknown>(
-	value: Method<This, Args, Return>,
-	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-) => Method<This, Args, Return>;
+export type CacheDecorator<This = any, Args extends unknown[] = unknown[]> = Dual<
+	<Return = unknown>(
+		value: Method<This, Args, Return>,
+		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+	) => Method<This, Args, Return>
+>;
 
-type Entry<Value> = { value: Value; expiresAt: number; };
+type Entry = { value: unknown; expiresAt: number; };
 
 /**
  * Memoizes results per instance, keyed by arguments. Works for async methods too:
@@ -32,50 +35,48 @@ export function cache<This = any, Args extends unknown[] = unknown[], Return = u
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ): Method<This, Args, Return>;
+export function cache(target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor;
 export function cache<This = any, Args extends unknown[] = unknown[]>(
 	input?: number | CacheConfig<This, Args>,
 ): CacheDecorator<This, Args>;
 export function cache(...args: unknown[]): unknown {
-	return overloaded(args, (input?: number | CacheConfig): CacheDecorator => (value, context) => {
-		assertMethodDecorator("cache", value, context);
-		type This = ThisParameterType<typeof value>;
-		type Return = ReturnType<typeof value>;
+	return overloaded(args, (input?: number | CacheConfig) =>
+		methodDecorator<CacheDecorator>("cache", (value) => {
+			const { ttlMs = Infinity, keyResolver } = typeof input === "number" ? { ttlMs: input } : input ?? {};
+			const slot = perInstance(() => new Map<string, Entry>());
 
-		const { ttlMs = Infinity, keyResolver } = typeof input === "number" ? { ttlMs: input } : input ?? {};
-		const slot = perInstance(() => new Map<string, Entry<Return>>());
+			return function(this: any, ...callArgs: unknown[]): unknown {
+				const store = slot(this);
+				const key = keyResolver === undefined
+					? JSON.stringify(callArgs)
+					: resolveCallable<any, string>(this, keyResolver)(...callArgs);
+				const now = performance.now();
+				const hit = store.get(key);
 
-		return function(this: This, ...callArgs: Parameters<typeof value>): Return {
-			const store = slot(this);
-			const key = keyResolver === undefined
-				? JSON.stringify(callArgs)
-				: resolveCallable<This, string>(this, keyResolver)(...callArgs);
-			const now = performance.now();
-			const hit = store.get(key);
-
-			if (hit !== undefined && hit.expiresAt > now) {
-				return hit.value;
-			}
-
-			// ponytail: O(n) sweep on miss; index by expiry if stores get large
-			for (const [storedKey, entry] of store) {
-				if (entry.expiresAt <= now) {
-					store.delete(storedKey);
+				if (hit !== undefined && hit.expiresAt > now) {
+					return hit.value;
 				}
-			}
 
-			const result = value.apply(this, callArgs);
-			const entry: Entry<Return> = { value: result, expiresAt: now + ttlMs };
-			store.set(key, entry);
-
-			if (isPromise(result)) {
-				result.catch(() => {
-					if (store.get(key) === entry) {
-						store.delete(key);
+				// ponytail: O(n) sweep on miss; index by expiry if stores get large
+				for (const [storedKey, entry] of store) {
+					if (entry.expiresAt <= now) {
+						store.delete(storedKey);
 					}
-				});
-			}
+				}
 
-			return result;
-		};
-	});
+				const result = value.apply(this, callArgs);
+				const entry: Entry = { value: result, expiresAt: now + ttlMs };
+				store.set(key, entry);
+
+				if (isPromise(result)) {
+					result.catch(() => {
+						if (store.get(key) === entry) {
+							store.delete(key);
+						}
+					});
+				}
+
+				return result;
+			};
+		}));
 }

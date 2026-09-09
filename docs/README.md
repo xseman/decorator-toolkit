@@ -44,10 +44,6 @@ TypeScript 5+, importable from the root package or from
 
 - [readonly](decorators/readonly.md)
 
-### Interop
-
-- [legacy](legacy.md): use method decorators under `experimentalDecorators`
-
 ## Notes
 
 - Method decorators apply to methods only; `bindAll` applies to classes;
@@ -58,5 +54,7 @@ TypeScript 5+, importable from the root package or from
 - `timeout` and `cancelPrevious` reject with the platform `DOMException`
   (`"TimeoutError"` / `"AbortError"`), the same errors `fetch` produces.
 - `dispose` and `periodic` use `Symbol.dispose`; trigger them with `using`.
-- Projects on `experimentalDecorators` wrap method decorators with
-  [legacy](legacy.md).
+- Every decorator also accepts the legacy `experimentalDecorators` call form
+  (TypeORM, NestJS), with the same imports. Exceptions: `periodic` needs a class
+  initializer and is unavailable there; `readonly` and `lazy` then decorate
+  get/set accessors; `bind` binds on first access; `dispose` wires the prototype.

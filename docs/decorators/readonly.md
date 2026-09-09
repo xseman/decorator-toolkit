@@ -37,6 +37,8 @@ store.id = "next-id";
 - `readonly` is an accessor decorator.
 - Both `@readonly` and `@readonly()` use the default read-only behavior.
 - Use the `accessor` keyword.
+- Under legacy `experimentalDecorators` decorate a `get`/`set` pair instead;
+  the setter is replaced with one that throws.
 - The thrown error includes the decorated property name.
 
 ## Related

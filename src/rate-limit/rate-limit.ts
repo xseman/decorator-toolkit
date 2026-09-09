@@ -1,4 +1,7 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	type Dual,
+	methodDecorator,
+} from "../common/decorators.js";
 import { perInstance } from "../common/state.js";
 import type { Method } from "../common/types.js";
 import {
@@ -13,18 +16,22 @@ export interface RateLimitConfig<This = any, Args extends unknown[] = unknown[]>
 	keyResolver?: ((...args: Args) => string) | keyof This;
 }
 
-/** Sliding-window limit per instance (and per key when `keyResolver` is set). Throws when exceeded. */
-export function rateLimit<This = any, Args extends unknown[] = unknown[]>(config: RateLimitConfig<This, Args>) {
-	return function<Return = unknown>(
+export type RateLimitDecorator<This = any, Args extends unknown[] = unknown[]> = Dual<
+	<Return = unknown>(
 		value: Method<This, Args, Return>,
 		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> {
-		assertMethodDecorator("rateLimit", value, context);
+	) => Method<This, Args, Return>
+>;
 
+/** Sliding-window limit per instance (and per key when `keyResolver` is set). Throws when exceeded. */
+export function rateLimit<This = any, Args extends unknown[] = unknown[]>(
+	config: RateLimitConfig<This, Args>,
+): RateLimitDecorator<This, Args> {
+	return methodDecorator("rateLimit", (value) => {
 		// ponytail: keys never seen again keep their last window; sweep if key cardinality is unbounded
 		const slot = perInstance(() => ({ async: false, windows: new Map<string, number[]>() }));
 
-		return function(this: This, ...args: Args): Return {
+		return function(this: This, ...args: unknown[]): unknown {
 			const key = config.keyResolver === undefined
 				? ""
 				: resolveCallable<This, string>(this, config.keyResolver)(...args);
@@ -35,7 +42,7 @@ export function rateLimit<This = any, Args extends unknown[] = unknown[]>(config
 			if (hits.length >= config.allowedCalls) {
 				const error = new Error(`Rate limit exceeded: ${config.allowedCalls} calls per ${config.timeSpanMs} ms`);
 				if (state.async) {
-					return Promise.reject(error) as Return;
+					return Promise.reject(error);
 				}
 				throw error;
 			}
@@ -46,5 +53,5 @@ export function rateLimit<This = any, Args extends unknown[] = unknown[]>(config
 			state.async = isPromise(result);
 			return result;
 		};
-	};
+	});
 }
