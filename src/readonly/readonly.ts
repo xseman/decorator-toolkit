@@ -1,58 +1,56 @@
 import {
 	assertAccessorDecorator,
-	isDecoratorCall,
+	type Dual,
+	dual,
+	overloaded,
 	propertyName,
 } from "../common/decorators.js";
 
-function getObjectName(value: unknown): string {
-	if (typeof value === "object" && value !== null) {
-		const constructor = (value as { constructor?: { name?: string; }; }).constructor;
-		if (constructor?.name) {
-			return constructor.name;
-		}
-	}
+export type ReadonlyDecorator = Dual<
+	<This, Value>(
+		value: ClassAccessorDecoratorTarget<This, Value>,
+		context: ClassAccessorDecoratorContext<This, Value>,
+	) => ClassAccessorDecoratorResult<This, Value>
+>;
 
-	return "Object";
+function readonlyError(name: string, owner: unknown): TypeError {
+	const ownerName = (owner as { constructor?: { name?: string; }; })?.constructor?.name || "Object";
+	return new TypeError(`Cannot assign to read only property '${name}' of object '#<${ownerName}>'`);
 }
 
-type ReadonlyDecorator = <This, Value>(
-	value: ClassAccessorDecoratorTarget<This, Value>,
-	context: ClassAccessorDecoratorContext<This, Value>,
-) => ClassAccessorDecoratorResult<This, Value>;
-
+/** Makes an `accessor` member (or, with legacy decorators, a get/set pair) throw on assignment. */
 export function readonly<This, Value>(
 	value: ClassAccessorDecoratorTarget<This, Value>,
 	context: ClassAccessorDecoratorContext<This, Value>,
 ): ClassAccessorDecoratorResult<This, Value>;
+export function readonly(target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor;
 export function readonly(): ReadonlyDecorator;
-export function readonly(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: ReadonlyDecorator = <This, Value>(
-		value: ClassAccessorDecoratorTarget<This, Value>,
-		decoratorContext: ClassAccessorDecoratorContext<This, Value>,
-	): ClassAccessorDecoratorResult<This, Value> => {
-		assertAccessorDecorator("readonly", value, decoratorContext);
+export function readonly(...args: unknown[]): unknown {
+	return overloaded(args, () =>
+		dual<ReadonlyDecorator>(
+			(value: ClassAccessorDecoratorTarget<unknown, unknown>, context: ClassAccessorDecoratorContext) => {
+				assertAccessorDecorator("readonly", value, context);
+				const name = propertyName(context.name);
 
-		const name = propertyName(decoratorContext.name);
-
-		return {
-			get(this: This): Value {
-				return value.get.call(this);
+				return {
+					get(this: unknown): unknown {
+						return value.get.call(this);
+					},
+					set(this: unknown): void {
+						throw readonlyError(name, this);
+					},
+				};
 			},
-			set(this: This, _nextValue: Value): void {
-				throw new TypeError(`Cannot assign to read only property '${name}' of object '#<${getObjectName(this)}>'`);
-			},
-			init(initialValue: Value): Value {
-				return initialValue;
-			},
-		};
-	};
+			(_target, key, descriptor) => {
+				if (typeof descriptor.get !== "function" && typeof descriptor.set !== "function") {
+					throw new Error("@readonly is applicable only on accessors.");
+				}
 
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as ClassAccessorDecoratorTarget<any, unknown>,
-			context as ClassAccessorDecoratorContext<any, unknown>,
-		);
-	}
-
-	return decorate;
+				const name = propertyName(key);
+				descriptor.set = function(this: unknown): void {
+					throw readonlyError(name, this);
+				};
+				return descriptor;
+			},
+		));
 }

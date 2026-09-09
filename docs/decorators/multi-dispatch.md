@@ -1,7 +1,7 @@
 # multiDispatch
 
-Run the same async method several times in parallel and resolve with the first
-successful result.
+Hedged requests: run the same async method several times in parallel and
+resolve with the first successful result.
 
 ## Import
 
@@ -9,12 +9,10 @@ successful result.
 import { multiDispatch } from "decorator-toolkit/multi-dispatch";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/multi-dispatch/legacy` or import `{ multiDispatch }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
-multiDispatch(dispatchesAmount: number)
+multiDispatch(dispatches: number)
 ```
 
 ## Example
@@ -42,7 +40,8 @@ class MirrorClient {
 
 - `multiDispatch` is an async method decorator.
 - All dispatches receive the same arguments.
-- If every dispatch fails, the decorator rejects with the last observed error.
+- If every dispatch fails, the decorator rejects with an `AggregateError`
+  whose `errors` holds each failure in dispatch order (`Promise.any`).
 
 ## Related
 

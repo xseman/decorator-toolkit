@@ -41,7 +41,7 @@ describe("multiDispatch", () => {
 		expect(subject.counter).toBe(2);
 	});
 
-	test("rejects with the last error when all calls fail", async () => {
+	test("rejects with an AggregateError when all calls fail", async () => {
 		class TestSubject {
 			counter = 0;
 
@@ -65,7 +65,8 @@ describe("multiDispatch", () => {
 			throw new Error("should not reach here");
 		} catch (error) {
 			expect(subject.counter).toBe(2);
-			expect((error as Error).message).toBe("slowest");
+			expect(error).toBeInstanceOf(AggregateError);
+			expect((error as AggregateError).errors.map((inner) => (inner as Error).message)).toEqual(["slowest", "fastest"]);
 		}
 	});
 
@@ -90,5 +91,10 @@ describe("multiDispatch", () => {
 		const subject = new TestSubject();
 		expect(await subject.foo()).toBe("fast");
 		expect(subject.counter).toBe(2);
+	});
+
+	test("throws for a non-positive dispatch count", () => {
+		expect(() => multiDispatch(0)).toThrow("@multiDispatch: dispatches must be a positive integer.");
+		expect(() => multiDispatch(1.5)).toThrow("@multiDispatch: dispatches must be a positive integer.");
 	});
 });

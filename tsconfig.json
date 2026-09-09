@@ -11,6 +11,10 @@
 		"moduleResolution": "Node16",
 		"target": "ES2022",
 		"lib": ["ES2023", "ESNext.Disposable"],
+		// TypeScript 7 no longer includes every @types package automatically.
+		// Listing only "node" also matches what consumers get: this package ships
+		// types from src/, so the source must not rely on Bun-only globals.
+		"types": ["node"],
 
 		// Other Outputs
 		// "sourceMap": true,

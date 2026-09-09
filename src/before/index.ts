@@ -1,1 +1,1 @@
-export { before, type BeforeConfig } from "./before.js";
+export * from "./before.js";

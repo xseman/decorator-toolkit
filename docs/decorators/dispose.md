@@ -10,8 +10,6 @@ called automatically through `Symbol.dispose` or `Symbol.asyncDispose`.
 import { dispose } from "decorator-toolkit/dispose";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/dispose/legacy` or import `{ dispose }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
@@ -28,6 +26,8 @@ dispose(config?: {
 import { dispose } from "decorator-toolkit/dispose";
 
 class DatabaseConnection {
+	declare [Symbol.dispose]: () => void;
+
 	@dispose
 	close(): void {
 		// called when the instance leaves the `using` block
@@ -46,6 +46,8 @@ class DatabaseConnection {
 import { dispose } from "decorator-toolkit/dispose";
 
 class ConnectionPool {
+	declare [Symbol.asyncDispose]: () => Promise<void>;
+
 	@dispose({ async: true })
 	async drain(): Promise<void> {
 		// called when the instance leaves the `await using` block
@@ -65,6 +67,8 @@ order they were declared (FIFO):
 
 ```ts
 class Service {
+	declare [Symbol.dispose]: () => void;
+
 	@dispose
 	closeCache(): void {/* ... */}
 
@@ -81,11 +85,16 @@ class Service {
 - `@dispose` and `@dispose()` both wire `Symbol.dispose` (sync).
 - Pass `{ async: true }` to wire `Symbol.asyncDispose` instead; use `await using` with such instances.
 - Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
+- The decorator wires the symbol at run time, so the type does not carry it. Declare
+  `declare [Symbol.dispose]: () => void` (or the async variant) on the class to use it
+  with `using`. `declare` is type-only and emits nothing.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
-- Requires TypeScript 5.2+ and a runtime that supports `Symbol.dispose` / `Symbol.asyncDispose`. This decorator specifically requires Node.js ≥ 18.18 or Bun ≥ 1.0, even though the package's engine constraint is `>=18.0.0`.
+- Under legacy `experimentalDecorators` the disposer is wired on the prototype
+  instead of on each instance.
+- Requires TypeScript 5.2+ and a runtime with `Symbol.dispose` / `Symbol.asyncDispose` (Node 22+, Bun, current browsers).
+- [periodic](periodic.md) registers its own disposer the same way, so `using` also stops timers.
 
 ## Related
 
-- [onError](on-error.md)
-- [after](after.md)
+- [periodic](periodic.md)

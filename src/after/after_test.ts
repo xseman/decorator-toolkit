@@ -14,7 +14,7 @@ import {
 
 describe("after", () => {
 	test("throws when used on a field", () => {
-		const invalidAfter: any = after({ func: () => undefined });
+		const invalidAfter: any = after(() => undefined);
 
 		expect(() => {
 			class TestSubject {
@@ -37,7 +37,7 @@ describe("after", () => {
 				expect(counter).toBe(1);
 			}
 
-			@after<TestSubject, void, [number]>({ func: "afterHook" })
+			@after<TestSubject, void, [number]>("afterHook")
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -71,7 +71,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, void, [number]>({ func: afterFunc })
+			@after<TestSubject, void, [number]>(afterFunc)
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -102,7 +102,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, Promise<void>, []>({ func: afterFunc })
+			@after<TestSubject, Promise<void>, []>(afterFunc)
 			foo(): Promise<void> {
 				expect(counter).toBe(0);
 				counter += 1;
@@ -131,10 +131,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, void, []>({
-				func: afterFunc,
-				wait: true,
-			})
+			@after<TestSubject, void, []>(afterFunc, { wait: true })
 			foo(): Promise<void> {
 				expect(counter).toBe(0);
 				counter += 1;
@@ -161,7 +158,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, number, [number, number]>({ func: afterFunc })
+			@after<TestSubject, number, [number, number]>(afterFunc)
 			foo(x: number, y: number): number {
 				return x + y;
 			}
@@ -177,10 +174,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, number, [number, number]>({
-				func: afterFunc,
-				wait: true,
-			})
+			@after<TestSubject, number, [number, number]>(afterFunc, { wait: true })
 			foo(x: number, y: number): Promise<number> {
 				return Promise.resolve(x + y);
 			}
@@ -196,7 +190,7 @@ describe("after", () => {
 		};
 
 		class TestSubject {
-			@after<TestSubject, number, [number]>({ func: afterFunc })
+			@after<TestSubject, number, [number]>(afterFunc)
 			foo(x: number): number {
 				return x;
 			}
@@ -204,5 +198,17 @@ describe("after", () => {
 
 		const result = await new TestSubject().foo(42);
 		expect(result).toBe(42);
+	});
+
+	test("throws when the hook name does not resolve to a method", () => {
+		class TestSubject {
+			notAFunction = 42;
+
+			@after<TestSubject>("notAFunction")
+			foo(): void {
+			}
+		}
+
+		expect(() => new TestSubject().foo()).toThrow("Expected notAFunction to resolve to a function.");
 	});
 });

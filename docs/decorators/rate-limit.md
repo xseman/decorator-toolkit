@@ -6,13 +6,8 @@ custom key so each user, tenant, or route gets its own quota bucket.
 ## Import
 
 ```ts
-import {
-	rateLimit,
-	SimpleRateLimitCounter,
-} from "decorator-toolkit/rate-limit";
+import { rateLimit } from "decorator-toolkit/rate-limit";
 ```
-
-For legacy TypeScript decorators, import from `decorator-toolkit/rate-limit/legacy` or import `{ rateLimit }` from `decorator-toolkit/legacy`.
 
 ## Signature
 
@@ -21,28 +16,19 @@ rateLimit<This, Args>({
 	allowedCalls: number;
 	timeSpanMs: number;
 	keyResolver?: keyof This | ((...args: Args) => string);
-	rateLimitCounter?: RateLimitCounter;
-	rateLimitAsyncCounter?: RateLimitAsyncCounter;
-	exceedHandler?: () => void;
 })
 ```
 
 ## Example
 
 ```ts
-import {
-	rateLimit,
-	SimpleRateLimitCounter,
-} from "decorator-toolkit/rate-limit";
+import { rateLimit } from "decorator-toolkit/rate-limit";
 
 class ProfileApi {
-	readonly counter = new SimpleRateLimitCounter();
-
 	@rateLimit<ProfileApi, [string]>({
 		allowedCalls: 5,
 		timeSpanMs: 60_000,
 		keyResolver: (userId) => userId,
-		rateLimitCounter: new SimpleRateLimitCounter(),
 	})
 	load(userId: string): string {
 		return `/profiles/${userId}`;
@@ -53,12 +39,14 @@ class ProfileApi {
 ## Notes
 
 - `rateLimit` is a method decorator.
-- If you omit `keyResolver`, all calls share the same default bucket.
-- Provide either `rateLimitCounter` or `rateLimitAsyncCounter`, not both.
-- The default `exceedHandler` throws an error when the quota is exceeded.
+- The window is sliding and tracked per instance; `keyResolver` splits it
+  further per key.
+- Above the limit the call throws (or rejects, once the method is known to be
+  async) with `Error("Rate limit exceeded: …")`. Stack [onError](on-error.md)
+  above it for a fallback value.
 
 ## Related
 
-- [delegate](delegate.md)
+- [circuitBreaker](circuit-breaker.md)
+- [concurrent](concurrent.md)
 - [throttle](throttle.md)
-- [throttleAsync](throttle-async.md)

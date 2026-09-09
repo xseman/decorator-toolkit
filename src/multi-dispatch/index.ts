@@ -1,1 +1,1 @@
-export { multiDispatch } from "./multi-dispatch.js";
+export * from "./multi-dispatch.js";

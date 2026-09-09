@@ -71,7 +71,7 @@ describe("exec-time", () => {
 	});
 
 	test("uses console.info by default", () => {
-		const logSpy = spyOn(console, "info");
+		const logSpy = spyOn(console, "info").mockImplementation(() => undefined);
 
 		class TestSubject {
 			@execTime
@@ -88,7 +88,7 @@ describe("exec-time", () => {
 	});
 
 	test("uses console.info by default in factory form", () => {
-		const logSpy = spyOn(console, "info");
+		const logSpy = spyOn(console, "info").mockImplementation(() => undefined);
 
 		class TestSubject {
 			@execTime()

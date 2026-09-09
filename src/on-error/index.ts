@@ -1,1 +1,1 @@
-export { onError, type OnErrorConfig, type OnErrorHandler } from "./on-error.js";
+export * from "./on-error.js";

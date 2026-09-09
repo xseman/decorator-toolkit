@@ -9,8 +9,6 @@ expires.
 import { throttle } from "decorator-toolkit/throttle";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/throttle/legacy` or import `{ throttle }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
@@ -41,6 +39,6 @@ class ScrollTracker {
 
 ## Related
 
+- [concurrent](concurrent.md)
 - [debounce](debounce.md)
-- [delay](delay.md)
-- [throttleAsync](throttle-async.md)
+- [rateLimit](rate-limit.md)

@@ -1,1 +1,1 @@
-export { debounce } from "./debounce.js";
+export * from "./debounce.js";

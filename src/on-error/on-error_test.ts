@@ -9,7 +9,7 @@ import { onError } from "./on-error.js";
 
 describe("onError", () => {
 	test("throws when used on a field", () => {
-		const invalidOnError: any = onError({ func: () => undefined });
+		const invalidOnError: any = onError(() => undefined);
 
 		expect(() => {
 			class TestSubject {
@@ -25,7 +25,7 @@ describe("onError", () => {
 		class TestSubject {
 			value = 3;
 
-			@onError<TestSubject, void, [number]>({ func: "handleError" })
+			@onError<TestSubject, void, [number]>("handleError")
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -53,15 +53,15 @@ describe("onError", () => {
 	test("invokes a provided handler for sync errors", () => {
 		const captured: Array<{ message: string; args: [number]; }> = [];
 
-		const handler = (error: Error, args: [number]): void => {
+		const handler = (error: unknown, args: [number]): void => {
 			captured.push({
-				message: error.message,
-				args,
+				message: (error as Error).message,
+				args: args,
 			});
 		};
 
 		class TestSubject {
-			@onError<TestSubject, void, [number]>({ func: handler })
+			@onError<TestSubject, void, [number]>(handler)
 			foo(x: number): void {
 				this.goo(x);
 			}
@@ -82,15 +82,15 @@ describe("onError", () => {
 	test("supports async handlers", async () => {
 		const captured: Array<{ message: string; args: [number]; }> = [];
 
-		const handler = async (error: Error, args: [number]): Promise<void> => {
+		const handler = async (error: unknown, args: [number]): Promise<void> => {
 			captured.push({
-				message: error.message,
-				args,
+				message: (error as Error).message,
+				args: args,
 			});
 		};
 
 		class TestSubject {
-			@onError<TestSubject, Promise<void>, [number]>({ func: handler })
+			@onError<TestSubject, Promise<void>, [number]>(handler)
 			foo(_x: number): Promise<void> {
 				return Promise.reject(new Error("error"));
 			}
@@ -108,7 +108,7 @@ describe("onError", () => {
 		};
 
 		class TestSubject {
-			@onError<TestSubject, Promise<void>>({ func: handler })
+			@onError<TestSubject, Promise<void>>(handler)
 			foo(): Promise<void> {
 				return Promise.resolve();
 			}
@@ -121,14 +121,14 @@ describe("onError", () => {
 	test("supports sync methods with async error handlers", async () => {
 		let calls = 0;
 
-		const handler = async (error: Error, args: [number]): Promise<void> => {
-			expect(error.message).toBe("arr");
+		const handler = async (error: unknown, args: [number]): Promise<void> => {
+			expect((error as Error).message).toBe("arr");
 			expect(args).toEqual([1]);
 			calls += 1;
 		};
 
 		class TestSubject {
-			@onError<TestSubject, void, [number]>({ func: handler })
+			@onError<TestSubject, void, [number]>(handler)
 			foo(_x: number): void {
 				throw new Error("arr");
 			}

@@ -9,8 +9,6 @@ receiver.
 import { bind } from "decorator-toolkit/bind";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/bind/legacy` or import `{ bind }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
@@ -45,6 +43,8 @@ clickHandler();
 - Both `@bind` and `@bind()` use the default binding behavior.
 - It binds once during initialization using the standard decorator initializer.
 - Static methods are also supported.
+- Under legacy `experimentalDecorators` the method is bound lazily on first
+  access instead of at construction.
 - If you stack it with other method decorators, place `@bind` above the other
   decorators when you want the final decorated method to be bound.
 

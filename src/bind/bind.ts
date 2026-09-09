@@ -1,42 +1,56 @@
 import {
 	assertMethodDecorator,
-	isDecoratorCall,
+	type Dual,
+	dual,
+	overloaded,
 } from "../common/decorators.js";
-import type { Method } from "../common/types.js";
-import { resolveCallable } from "../common/utils.js";
+import type {
+	AnyFunction,
+	Method,
+} from "../common/types.js";
 
-type BindDecorator<This = any> = <Args extends unknown[] = unknown[], Return = unknown>(
-	value: Method<This, Args, Return>,
-	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-) => void;
+export type BindDecorator = Dual<
+	<This, Args extends unknown[] = unknown[], Return = unknown>(
+		value: Method<This, Args, Return>,
+		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
+	) => void
+>;
 
+/**
+ * Binds the method to its instance (or class, for static methods). Standard
+ * decorators bind at construction; legacy decorators bind on first access.
+ */
 export function bind<This, Args extends unknown[] = unknown[], Return = unknown>(
 	value: Method<This, Args, Return>,
 	context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
 ): void;
-export function bind<This = any>(): BindDecorator<This>;
-export function bind(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: BindDecorator = function<This, Args extends unknown[] = unknown[], Return = unknown>(
-		value: Method<This, Args, Return>,
-		decoratorContext: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): void {
-		assertMethodDecorator("bind", value, decoratorContext);
-		const methodName = decoratorContext.name;
+export function bind(target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor;
+export function bind(): BindDecorator;
+export function bind(...args: unknown[]): unknown {
+	return overloaded(args, () =>
+		dual<BindDecorator>(
+			(value, context: ClassMethodDecoratorContext) => {
+				assertMethodDecorator("bind", value, context);
 
-		decoratorContext.addInitializer(function(this: This): void {
-			(this as Record<PropertyKey, unknown>)[methodName as PropertyKey] = resolveCallable(
-				this,
-				methodName as keyof This,
-			) as Method<This, Args, Return>;
-		});
-	};
+				context.addInitializer(function(this: unknown): void {
+					(this as Record<PropertyKey, unknown>)[context.name] = (value as AnyFunction).bind(this);
+				});
+			},
+			(_target, key, descriptor) => {
+				if (typeof descriptor.value !== "function") {
+					throw new Error("@bind is applicable only on methods.");
+				}
 
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(
-			inputOrValue as Method<any, unknown[], unknown>,
-			context as ClassMethodDecoratorContext<any, Method<any, unknown[], unknown>>,
-		);
-	}
-
-	return decorate;
+				const method = descriptor.value as AnyFunction;
+				return {
+					configurable: true,
+					enumerable: descriptor.enumerable,
+					get(this: object): AnyFunction {
+						const bound = method.bind(this);
+						Object.defineProperty(this, key, { value: bound, configurable: true, writable: true, enumerable: descriptor.enumerable });
+						return bound;
+					},
+				};
+			},
+		));
 }

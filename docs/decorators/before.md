@@ -9,15 +9,13 @@ instrumentation, or instance-local side effects that must happen first.
 import { before } from "decorator-toolkit/before";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/before/legacy` or import `{ before }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
-before<This>({
-	func: keyof This | (() => unknown),
-	wait?: boolean,
-})
+before<This>(
+	hook: keyof This | (() => unknown),
+	options?: { wait?: boolean; },
+)
 ```
 
 ## Example
@@ -32,10 +30,7 @@ class CacheWarmer {
 		this.ready = true;
 	}
 
-	@before<CacheWarmer>({
-		func: "prepare",
-		wait: true,
-	})
+	@before<CacheWarmer>("prepare", { wait: true })
 	async getValue(): Promise<string> {
 		return this.ready ? "warm" : "cold";
 	}
@@ -45,7 +40,8 @@ class CacheWarmer {
 ## Notes
 
 - `before` is a method decorator.
-- The hook is called without arguments.
+- `hook` is a function or the name of a method on the instance. It is called
+  without arguments.
 - `wait` defaults to `false`. Set it to `true` when the setup hook is async and
   must finish before the method starts.
 

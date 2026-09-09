@@ -5,61 +5,11 @@ import {
 } from "bun:test";
 
 import { sleep } from "../common/utils.js";
-import {
-	rateLimit,
-	type RateLimitAsyncCounter,
-	SimpleRateLimitCounter,
-} from "./rate-limit.js";
-
-class AsyncSimpleRateLimitCounter implements RateLimitAsyncCounter {
-	readonly counterMap = new Map<string, number>();
-
-	async getCount(key: string): Promise<number> {
-		await sleep(10);
-		return this.counterMap.get(key) ?? 0;
-	}
-
-	async inc(key: string): Promise<void> {
-		await sleep(10);
-		if (!this.counterMap.has(key)) {
-			await sleep(10);
-			this.counterMap.set(key, 0);
-		}
-
-		await sleep(10);
-		this.counterMap.set(key, (this.counterMap.get(key) ?? 0) + 1);
-	}
-
-	async dec(key: string): Promise<void> {
-		await sleep(10);
-		const currentCount = this.counterMap.get(key) ?? 0;
-		await sleep(10);
-
-		if (currentCount <= 1) {
-			this.counterMap.delete(key);
-			return;
-		}
-
-		this.counterMap.set(key, currentCount - 1);
-	}
-}
+import { rateLimit } from "./rate-limit.js";
 
 describe("rateLimit", () => {
-	class TestSubject {
-		counter = 0;
-
-		@rateLimit({ allowedCalls: 2, timeSpanMs: 200 })
-		foo(): number {
-			this.counter += 1;
-			return this.counter;
-		}
-	}
-
 	test("throws when used on a field", () => {
-		const invalidRateLimit: any = rateLimit({
-			allowedCalls: 1,
-			timeSpanMs: 1000,
-		});
+		const invalidRateLimit: any = rateLimit({ allowedCalls: 1, timeSpanMs: 1000 });
 
 		expect(() => {
 			class InvalidSubject {
@@ -68,132 +18,49 @@ describe("rateLimit", () => {
 			}
 
 			return InvalidSubject;
-		}).toThrow("@rateLimit is applicable only on a method.");
+		}).toThrow("@rateLimit is applicable only on methods.");
 	});
 
-	test("throws when both async and sync counters are configured", () => {
-		expect(() => {
-			rateLimit({
-				allowedCalls: 1,
-				timeSpanMs: 1000,
-				rateLimitAsyncCounter: {} as RateLimitAsyncCounter,
-				rateLimitCounter: {} as SimpleRateLimitCounter,
-			});
-		}).toThrow("You can't provide both rateLimitAsyncCounter and rateLimitCounter.");
-	});
-
-	test("enforces the synchronous limit with the default counter", async () => {
-		const subject = new TestSubject();
-		subject.foo();
-		await sleep(50);
-		expect(subject.counter).toBe(1);
-		subject.foo();
-		await sleep(50);
-		expect(subject.counter).toBe(2);
-
-		await sleep(50);
-		try {
-			subject.foo();
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
-		}
-
-		await sleep(80);
-		expect(subject.foo()).toBe(3);
-		expect(subject.counter).toBe(3);
-	});
-
-	test("uses a provided synchronous counter", async () => {
-		const countMap = new Map<string, number>();
-
-		class CustomCounterSubject {
+	test("allows `allowedCalls` per sliding window and throws above it", async () => {
+		class TestSubject {
 			counter = 0;
 
-			@rateLimit({
-				allowedCalls: 2,
-				timeSpanMs: 200,
-				rateLimitCounter: new SimpleRateLimitCounter(countMap),
-			})
-			foo(): void {
-				this.counter += 1;
-			}
-		}
-
-		const subject = new CustomCounterSubject();
-		subject.foo();
-		expect(countMap.size).toBe(1);
-		await sleep(50);
-		expect(subject.counter).toBe(1);
-		subject.foo();
-		expect(countMap.get("__rateLimit__")).toBe(2);
-		await sleep(50);
-		expect(subject.counter).toBe(2);
-
-		await sleep(50);
-		try {
-			subject.foo();
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
-		}
-
-		await sleep(80);
-		expect(countMap.get("__rateLimit__")).toBe(1);
-		subject.foo();
-		expect(countMap.get("__rateLimit__")).toBe(2);
-		expect(subject.counter).toBe(3);
-
-		await sleep(220);
-		expect(countMap.size).toBe(0);
-	});
-
-	test("uses a provided async counter", async () => {
-		const counter = new AsyncSimpleRateLimitCounter();
-
-		class AsyncCounterSubject {
-			counter = 0;
-
-			@rateLimit({
-				allowedCalls: 2,
-				timeSpanMs: 200,
-				rateLimitAsyncCounter: counter,
-			})
-			async foo(): Promise<number> {
+			@rateLimit({ allowedCalls: 2, timeSpanMs: 100 })
+			foo(): number {
 				this.counter += 1;
 				return this.counter;
 			}
 		}
 
-		const first = new AsyncCounterSubject();
-		const second = new AsyncCounterSubject();
-		await first.foo();
-		await sleep(50);
-		expect(first.counter).toBe(1);
-		await second.foo();
-		await sleep(50);
-		expect(first.counter).toBe(1);
-		expect(second.counter).toBe(1);
+		const subject = new TestSubject();
+		expect(subject.foo()).toBe(1);
+		expect(subject.foo()).toBe(2);
+		expect(() => subject.foo()).toThrow("Rate limit exceeded: 2 calls per 100 ms");
+		expect(subject.counter).toBe(2);
 
-		await sleep(50);
-		try {
-			await first.foo();
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
-		}
-
-		await sleep(80);
-		expect(await first.foo()).toBe(2);
-		expect(await second.foo()).toBe(2);
-		expect(counter.counterMap.has("__rateLimit__")).toBe(true);
+		await sleep(120);
+		expect(subject.foo()).toBe(3);
 	});
 
-	test("supports key resolvers as functions and method names", async () => {
+	test("keeps windows isolated per instance", () => {
+		class TestSubject {
+			@rateLimit({ allowedCalls: 1, timeSpanMs: 1000 })
+			foo(): void {
+			}
+		}
+
+		const first = new TestSubject();
+		const second = new TestSubject();
+		first.foo();
+		expect(() => first.foo()).toThrow("Rate limit exceeded");
+		expect(() => second.foo()).not.toThrow();
+	});
+
+	test("supports key resolvers as functions and method names", () => {
 		class FunctionKeyResolverSubject {
 			@rateLimit<FunctionKeyResolverSubject, [string]>({
 				allowedCalls: 1,
-				timeSpanMs: 200,
+				timeSpanMs: 1000,
 				keyResolver: (value: string) => value,
 			})
 			foo(value: string): void {
@@ -203,7 +70,7 @@ describe("rateLimit", () => {
 		class NamedKeyResolverSubject {
 			@rateLimit<NamedKeyResolverSubject, [string]>({
 				allowedCalls: 1,
-				timeSpanMs: 200,
+				timeSpanMs: 1000,
 				keyResolver: "goo",
 			})
 			foo(value: string): void {
@@ -214,56 +81,23 @@ describe("rateLimit", () => {
 			}
 		}
 
-		const functionKey = new FunctionKeyResolverSubject();
-		functionKey.foo("a");
-		await sleep(50);
-		functionKey.foo("b");
-		await sleep(50);
-		try {
-			functionKey.foo("a");
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
+		for (const subject of [new FunctionKeyResolverSubject(), new NamedKeyResolverSubject()]) {
+			subject.foo("a");
+			subject.foo("b");
+			expect(() => subject.foo("a")).toThrow("Rate limit exceeded");
 		}
-		await sleep(120);
-		functionKey.foo("a");
-
-		const namedKey = new NamedKeyResolverSubject();
-		namedKey.foo("a");
-		await sleep(50);
-		namedKey.foo("b");
-		await sleep(50);
-		try {
-			namedKey.foo("a");
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("You have exceeded the number of allowed calls.");
-		}
-		await sleep(120);
-		namedKey.foo("a");
 	});
 
-	test("invokes a custom exceed handler", async () => {
-		class CustomHandlerSubject {
-			@rateLimit({
-				allowedCalls: 1,
-				timeSpanMs: 50,
-				exceedHandler: () => {
-					throw new Error("blarg");
-				},
-			})
-			foo(): void {
+	test("rejects instead of throwing once the method is known to be async", async () => {
+		class TestSubject {
+			@rateLimit({ allowedCalls: 1, timeSpanMs: 1000 })
+			async foo(): Promise<string> {
+				return "ok";
 			}
 		}
 
-		const subject = new CustomHandlerSubject();
-		subject.foo();
-		await sleep(20);
-		try {
-			subject.foo();
-			throw new Error("should not reach this line");
-		} catch (error) {
-			expect((error as Error).message).toBe("blarg");
-		}
+		const subject = new TestSubject();
+		expect(await subject.foo()).toBe("ok");
+		await expect(subject.foo()).rejects.toThrow("Rate limit exceeded");
 	});
 });

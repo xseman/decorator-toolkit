@@ -1,56 +1,45 @@
-import {
-	assertClassDecorator,
-	isDecoratorCall,
-} from "../common/decorators.js";
+import { assertClassDecorator } from "../common/decorators.js";
 
 type Constructor = new(...args: any[]) => object;
 
-type BindAllDecorator = <Class extends Constructor>(value: Class, context: ClassDecoratorContext<Class>) => Class;
+export type BindAllDecorator =
+	& (<Class extends Constructor>(value: Class, context: ClassDecoratorContext<Class>) => Class)
+	& (<Class extends Constructor>(value: Class) => Class);
 
-function getBindableMethodNames(prototype: object): PropertyKey[] {
-	return [
-		...Object.getOwnPropertyNames(prototype),
-		...Object.getOwnPropertySymbols(prototype),
-	].filter((propertyName) => {
-		if (propertyName === "constructor") {
-			return false;
-		}
-
-		const descriptor = Object.getOwnPropertyDescriptor(prototype, propertyName);
-		return typeof descriptor?.value === "function";
-	});
+function ownMethodNames(prototype: object): PropertyKey[] {
+	return Reflect.ownKeys(prototype).filter((name) => name !== "constructor" && typeof Object.getOwnPropertyDescriptor(prototype, name)?.value === "function");
 }
 
-export function bindAll<Class extends Constructor>(
-	value: Class,
-	context: ClassDecoratorContext<Class>,
-): Class;
+/** Binds every method declared on the class to each instance at construction. */
+export function bindAll<Class extends Constructor>(value: Class, context: ClassDecoratorContext<Class>): Class;
+export function bindAll<Class extends Constructor>(value: Class): Class;
 export function bindAll(): BindAllDecorator;
-export function bindAll(inputOrValue?: unknown, context?: unknown): unknown {
-	const decorate: BindAllDecorator = <Class extends Constructor>(
-		value: Class,
-		decoratorContext: ClassDecoratorContext<Class>,
-	): Class => {
-		assertClassDecorator("bindAll", value, decoratorContext);
-		const methodNames = getBindableMethodNames(value.prototype);
+export function bindAll(...args: unknown[]): unknown {
+	const decorate = (value: unknown, context?: unknown): Constructor => {
+		if (context !== undefined) {
+			assertClassDecorator("bindAll", value, context as { kind: string; });
+		} else if (typeof value !== "function") {
+			throw new Error("@bindAll is applicable only on classes.");
+		}
 
-		return class extends value {
-			constructor(...args: any[]) {
-				super(...args);
+		const base = value as Constructor;
+		const names = ownMethodNames(base.prototype);
 
-				for (const methodName of methodNames) {
-					const method = (this as Record<PropertyKey, unknown>)[methodName];
-					if (typeof method === "function") {
-						(this as Record<PropertyKey, unknown>)[methodName] = method.bind(this);
+		return {
+			[base.name]: class extends base {
+				constructor(...ctorArgs: any[]) {
+					super(...ctorArgs);
+
+					for (const name of names) {
+						const method = (this as Record<PropertyKey, unknown>)[name];
+						if (typeof method === "function") {
+							(this as Record<PropertyKey, unknown>)[name] = method.bind(this);
+						}
 					}
 				}
-			}
-		} as Class;
+			},
+		}[base.name]!;
 	};
 
-	if (arguments.length === 2 && isDecoratorCall(context)) {
-		return decorate(inputOrValue as Constructor, context as ClassDecoratorContext<Constructor>);
-	}
-
-	return decorate;
+	return args.length === 0 ? decorate : decorate(args[0], args[1]);
 }

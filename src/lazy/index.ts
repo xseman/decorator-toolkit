@@ -1,1 +1,1 @@
-export { lazy } from "./lazy.js";
+export * from "./lazy.js";

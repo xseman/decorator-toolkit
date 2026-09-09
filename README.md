@@ -1,48 +1,33 @@
 <h1 align="center">decorator-toolkit</h1>
 
 <p align="center">
-	Modern TC39 decorators for reducing repetitive code in TypeScript.
+	Standard resilience and control-flow patterns as TC39 decorators for TypeScript.
 </p>
 
 <p align="center">
-	<a href="#features">Features</a> •
 	<a href="#installation">Installation</a> •
-	<a href="#documentation">Documentation</a> •
 	<a href="#usage">Usage</a> •
-	<a href="#available-decorators">Available Decorators</a>
+	<a href="#available-decorators">Available Decorators</a> •
+	<a href="#documentation">Documentation</a>
 </p>
 
-## Features
-
-- Built for modern TC39 decorators in TypeScript 5+
-- Covers sync and async method workflows
-- Includes caching, retry, timeout, debounce, throttling, delegation, rate limiting, lazy evaluation, and resource disposal
+The patterns you know from Polly, resilience4j, tenacity or Go's `sync` and
+`singleflight`, as one-line decorators: retry, timeout, circuit breaker,
+fallback, rate limit, bulkhead, memoize, singleflight, once, debounce,
+throttle. No runtime dependencies. Works in browsers, Node 22+, Bun and Deno.
 
 ## Installation
 
-### npm
-
 ```sh
-$ npm install decorator-toolkit
-
-# or using Bun
-$ bun add decorator-toolkit
+npm install decorator-toolkit
+# or
+bun add decorator-toolkit
 ```
 
 ## Usage
 
-This package targets the standard TC39 decorator model. It is intended for
-TypeScript 5+ projects using standard decorators rather than legacy
-`experimentalDecorators` semantics.
-
-Legacy TypeScript decorators are also available for projects that still use the
-older transform. Import them from `decorator-toolkit/legacy` or
-`decorator-toolkit/<name>/legacy`.
-
-### Compiler Setup
-
-At minimum, use a modern TypeScript configuration that emits native class
-features and supports standard decorators:
+The package targets standard TC39 decorators (TypeScript 5+). Use a modern
+compiler configuration:
 
 ```json
 {
@@ -54,176 +39,161 @@ features and supports standard decorators:
 }
 ```
 
+This package ships its types from source, so the compiler needs the globals it
+uses (`setTimeout`, `performance`, `DOMException`). A browser project gets them
+from `"lib": ["DOM", ...]`; a Node project needs `@types/node`, listed in
+`"types"` when you are on TypeScript 7, which no longer includes every `@types`
+package automatically.
+
 > [!NOTE]
-> Method decorators in this package apply to methods only, `bindAll` applies to
-> classes, and accessor decorators apply to `accessor` members only. Private
-> members are not supported.
+> Method decorators apply to methods only, `bindAll` applies to classes,
+> `readonly` applies to `accessor` members and `lazy` to `get` accessors.
+> Private members are not supported. Decorators that need no configuration
+> accept both `@decorator` and `@decorator()`.
 
-> [!TIP]
-> Decorators that use default behavior can be written as `@decorator` or
-> `@decorator()`. This applies to `bind`, `bindAll`, `cancelPrevious`,
-> `cache`, `cacheAsync`, `delegate`, `dispose`, `execTime`, `lazy`, `readonly`, and
-> `throttleAsync`.
-
-### Basic Example
+### Resilience pipeline
 
 ```ts
 import {
-	after,
-	before,
+	circuitBreaker,
+	onError,
 	retry,
 	timeout,
 } from "decorator-toolkit";
 
-class PaymentService {
-	private readonly events: string[] = [];
-
-	beforeSave(): void {
-		this.events.push("before");
-	}
-
-	afterSave(params: { args: [string]; response: string; }): void {
-		this.events.push(`after:${params.args[0]}:${params.response}`);
-	}
-
-	@before<PaymentService>({ func: "beforeSave" })
-	@after<PaymentService, string, [string]>({ func: "afterSave", wait: true })
-	@retry(3)
-	@timeout(1_000)
-	async save(id: string): Promise<string> {
-		return `saved:${id}`;
+class PricingClient {
+	@onError<PricingClient, number, [string]>(() => 0) // fallback
+	@circuitBreaker({ failures: 5, resetMs: 30_000 }) // stop hammering a dead service
+	@retry({ retries: 3, delay: (attempt) => 200 * 2 ** attempt }) // exponential backoff
+	@timeout(2_000) // DOMException "TimeoutError"
+	async price(sku: string): Promise<number> {
+		const response = await fetch(`https://pricing.example/${sku}`);
+		return Number(await response.text());
 	}
 }
 ```
 
-### Caching And Rate Limiting
+### Caching, deduplication and limits
 
 ```ts
 import {
 	cache,
+	concurrent,
+	delegate,
 	rateLimit,
+	runOnce,
 } from "decorator-toolkit";
 
-class DirectoryService {
-	@cache({ ttlMs: 5_000 })
-	lookupUser(id: string): { id: string; name: string; } {
-		return { id, name: `user:${id}` };
+class Directory {
+	@runOnce // lazy init, concurrent callers share the promise
+	async connect(): Promise<void> {}
+
+	@cache({ ttlMs: 5_000 }) // memoize by arguments, lazy TTL
+	lookup(id: string): string {
+		return `user:${id}`;
 	}
 
-	@rateLimit<DirectoryService, [string]>({
-		allowedCalls: 10,
-		timeSpanMs: 60_000,
-		keyResolver: (userId) => userId,
-	})
-	openProfile(userId: string): string {
-		return `/users/${userId}`;
+	@delegate // singleflight: identical concurrent calls share one request
+	async load(id: string): Promise<object> {
+		return fetch(`/users/${id}`).then((r) => r.json());
+	}
+
+	@concurrent(4) // bulkhead: at most 4 in flight, the rest queue
+	async sync(id: string): Promise<void> {}
+
+	@rateLimit<Directory, [string]>({ allowedCalls: 10, timeSpanMs: 60_000, keyResolver: (id) => id })
+	openProfile(id: string): string {
+		return `/users/${id}`;
 	}
 }
 ```
 
-### Accessor Decorators
-
-`readonly` and `refreshable` are accessor decorators, so they must decorate
-`accessor` members. `lazy` decorates `get` accessors directly.
+### Lifecycle
 
 ```ts
 import {
+	dispose,
 	lazy,
+	periodic,
 	readonly,
-	refreshable,
 } from "decorator-toolkit";
 
-class SessionStore {
+class Session {
+	declare [Symbol.dispose]: () => void;
+
 	@readonly
 	accessor id = crypto.randomUUID();
 
 	@lazy
 	get config(): object {
-		return buildExpensiveConfig(); // computed once per instance
+		return buildExpensiveConfig(); // once per instance
 	}
 
-	@refreshable<SessionStore, number>({
-		dataProvider: "loadCounter",
-		intervalMs: 5_000,
-	})
-	accessor counter: number | null = 0;
+	@periodic({ intervalMs: 5_000, immediate: true })
+	async heartbeat(): Promise<void> {}
 
-	async loadCounter(): Promise<number> {
-		return Date.now();
-	}
+	@dispose
+	close(): void {}
 }
 
-const store = new SessionStore();
-store.counter = null;
+{
+	using session = new Session();
+} // heartbeat stops, close() runs
 ```
 
-Assigning `null` to a `refreshable` accessor stops future refresh cycles for
-that accessor.
-
-### Root And Subpath Imports
-
-You can import from the root package:
+### Imports
 
 ```ts
 import {
-	delegate,
+	retry,
 	timeout,
 } from "decorator-toolkit";
-```
-
-Or import specific modules via subpaths:
-
-```ts
 import { cache } from "decorator-toolkit/cache";
 import {
-	timeout,
-	TimeoutError,
-} from "decorator-toolkit/timeout";
+	circuitBreaker,
+	CircuitOpenError,
+} from "decorator-toolkit/circuit-breaker";
 ```
 
-Legacy TypeScript decorators are available from the existing suffix subpaths,
-and `decorator-toolkit/legacy` re-exports the full legacy surface:
+### Legacy `experimentalDecorators` projects
 
-```ts
-import { cache as legacyCache } from "decorator-toolkit/cache/legacy";
-import {
-	cache,
-	timeout,
-} from "decorator-toolkit/legacy";
-```
-
-Use the suffix path when you want one decorator only. Use the legacy barrel
-when you want several legacy decorators from a single import.
-
-## Documentation
-
-Start with [docs/README.md](docs/README.md) for grouped references and usage
-patterns. The decorator list below links to dedicated pages with current TC39
-examples adapted from the legacy site.
+TypeORM, NestJS and similar stacks require `experimentalDecorators`, which
+switches the whole compilation to the old decorator signature. Every decorator
+here detects that call form at runtime, so the same imports and the same
+`@retry(3)` work in both worlds. Differences under `experimentalDecorators`:
+`bind` binds on first access instead of at construction, `dispose` wires the
+prototype, `readonly` and `lazy` decorate get/set accessors, and `periodic` is
+unavailable because it needs a class initializer.
 
 ## Available Decorators
 
-| Decorator                                            | Purpose                                                                  |
-| ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| [after](docs/decorators/after.md)                    | Runs a hook after a method call, optionally waiting for async resolution |
-| [before](docs/decorators/before.md)                  | Runs a hook before a method call, optionally waiting for async hooks     |
-| [bind](docs/decorators/bind.md)                      | Binds a method to its instance or class during initialization            |
-| [bindAll](docs/decorators/bind-all.md)               | Binds all public instance methods declared on a class                    |
-| [cancelPrevious](docs/decorators/cancel-previous.md) | Rejects the previous pending async invocation with `CanceledPromise`     |
-| [debounce](docs/decorators/debounce.md)              | Coalesces rapid method calls into a later single execution               |
-| [delegate](docs/decorators/delegate.md)              | Shares one in-flight async invocation across callers with the same key   |
-| [delay](docs/decorators/delay.md)                    | Schedules method execution after a fixed delay                           |
-| [dispose](docs/decorators/dispose.md)                | Wires a method to `Symbol.dispose` or `Symbol.asyncDispose`              |
-| [execTime](docs/decorators/exec-time.md)             | Reports method execution duration                                        |
-| [cache](docs/decorators/cache.md)                    | Caches synchronous method results                                        |
-| [cacheAsync](docs/decorators/cache-async.md)         | Caches async results and deduplicates pending async calls                |
-| [lazy](docs/decorators/lazy.md)                      | Computes a getter once per instance and caches the result                |
-| [multiDispatch](docs/decorators/multi-dispatch.md)   | Starts multiple async attempts and resolves on the first success         |
-| [onError](docs/decorators/on-error.md)               | Forwards thrown or rejected errors to a handler                          |
-| [rateLimit](docs/decorators/rate-limit.md)           | Limits how many calls may happen within a configured time window         |
-| [readonly](docs/decorators/readonly.md)              | Makes an accessor write-protected                                        |
-| [refreshable](docs/decorators/refreshable.md)        | Refreshes an accessor from an async data provider on an interval         |
-| [retry](docs/decorators/retry.md)                    | Retries async methods using a fixed or custom delay strategy             |
-| [throttle](docs/decorators/throttle.md)              | Limits how often a method can run                                        |
-| [throttleAsync](docs/decorators/throttle-async.md)   | Queues async calls and executes them with bounded concurrency            |
-| [timeout](docs/decorators/timeout.md)                | Rejects slow async methods with `TimeoutError`                           |
+| Pattern         | Decorator                                            | Purpose                                                                    |
+| --------------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| Retry           | [retry](docs/decorators/retry.md)                    | Retries a rejected async method with a fixed or computed delay             |
+| Timeout         | [timeout](docs/decorators/timeout.md)                | Rejects slow async methods with a `DOMException` named `TimeoutError`      |
+| Circuit breaker | [circuitBreaker](docs/decorators/circuit-breaker.md) | Fails fast after N consecutive failures, probes again after a cooldown     |
+| Fallback        | [onError](docs/decorators/on-error.md)               | Routes thrown errors and rejections to a handler whose result is returned  |
+| Hedging         | [multiDispatch](docs/decorators/multi-dispatch.md)   | Starts N identical async calls and resolves with the first success         |
+| Rate limit      | [rateLimit](docs/decorators/rate-limit.md)           | Refuses calls above a count per sliding window, per instance or key        |
+| Bulkhead        | [concurrent](docs/decorators/concurrent.md)          | Limits in-flight async calls per instance; extra calls queue in order      |
+| Memoize         | [cache](docs/decorators/cache.md)                    | Caches results by arguments with an optional TTL; evicts rejected promises |
+| Singleflight    | [delegate](docs/decorators/delegate.md)              | Shares one in-flight async call across callers with the same key           |
+| Once            | [runOnce](docs/decorators/run-once.md)               | Runs once per instance and returns the first result to later calls         |
+| Lazy            | [lazy](docs/decorators/lazy.md)                      | Computes a getter once per instance                                        |
+| Debounce        | [debounce](docs/decorators/debounce.md)              | Coalesces rapid calls into one later execution                             |
+| Throttle        | [throttle](docs/decorators/throttle.md)              | Runs at most once per window; calls in between are dropped                 |
+| Latest wins     | [cancelPrevious](docs/decorators/cancel-previous.md) | Rejects the previous pending call with a `DOMException` named `AbortError` |
+| Delay           | [delay](docs/decorators/delay.md)                    | Schedules the call after a fixed delay                                     |
+| Periodic        | [periodic](docs/decorators/periodic.md)              | Calls the method on an interval until the instance is disposed             |
+| Dispose         | [dispose](docs/decorators/dispose.md)                | Wires a method to `Symbol.dispose` / `Symbol.asyncDispose` for `using`     |
+| Hooks           | [before](docs/decorators/before.md)                  | Runs a hook before the method                                              |
+|                 | [after](docs/decorators/after.md)                    | Runs a hook after the method, optionally after the promise resolves        |
+|                 | [execTime](docs/decorators/exec-time.md)             | Reports execution time via `performance.now()`                             |
+| Binding         | [bind](docs/decorators/bind.md)                      | Binds a method to its instance during initialization                       |
+|                 | [bindAll](docs/decorators/bind-all.md)               | Binds all methods declared on a class                                      |
+| Readonly        | [readonly](docs/decorators/readonly.md)              | Makes an `accessor` write-protected                                        |
+
+## Documentation
+
+Start with [docs/README.md](docs/README.md) for the grouped reference; every
+decorator has its own page under `docs/decorators/`.

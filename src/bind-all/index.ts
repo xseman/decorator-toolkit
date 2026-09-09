@@ -1,1 +1,1 @@
-export { bindAll } from "./bind-all.js";
+export * from "./bind-all.js";

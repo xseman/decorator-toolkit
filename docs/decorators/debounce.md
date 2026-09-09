@@ -9,8 +9,6 @@ the timer, so only the last call in the burst runs.
 import { debounce } from "decorator-toolkit/debounce";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/debounce/legacy` or import `{ debounce }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts

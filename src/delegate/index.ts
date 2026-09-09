@@ -1,1 +1,1 @@
-export { delegate } from "./delegate.js";
+export * from "./delegate.js";

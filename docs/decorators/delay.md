@@ -9,8 +9,6 @@ still executed.
 import { delay } from "decorator-toolkit/delay";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/delay/legacy` or import `{ delay }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts

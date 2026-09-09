@@ -1,69 +1,50 @@
-import { assertMethodDecorator } from "../common/decorators.js";
+import {
+	type Dual,
+	methodDecorator,
+} from "../common/decorators.js";
 import type { Method } from "../common/types.js";
 import {
 	isPromise,
 	resolveCallable,
 } from "../common/utils.js";
 
-export type AfterFunc<Return = unknown, Args extends unknown[] = unknown[]> = (params: AfterParams<Return, Args>) => unknown;
+export interface AfterParams<Response = unknown, Args extends unknown[] = unknown[]> {
+	args: Args;
+	response: Response;
+}
 
-export interface AfterConfig<This = any, Return = unknown, Args extends unknown[] = unknown[]> {
-	func: AfterFunc<Return, Args> | keyof This;
+export type AfterFunc<Response = unknown, Args extends unknown[] = unknown[]> = (params: AfterParams<Response, Args>) => unknown;
+
+export interface AfterOptions {
+	/** Run the hook after an async method resolves (with the resolved value) instead of right after the call. */
 	wait?: boolean;
 }
 
-export interface AfterParams<Return = unknown, Args extends unknown[] = unknown[]> {
-	args: Args;
-	response: Return;
-}
-
-export function createAfterMethod<This, Args extends unknown[] = unknown[], Return = unknown, Response = Return>(
-	originalMethod: Method<This, Args, Return>,
-	config: AfterConfig<This, Response, Args>,
-): Method<This, Args, Return> {
-	const resolvedConfig = {
-		wait: false,
-		...config,
-	};
-
-	return function(this: This, ...args: Args): Return {
-		const afterFunc = resolveCallable<This, unknown>(this, resolvedConfig.func);
-		const response = originalMethod.apply(this, args);
-
-		if (!resolvedConfig.wait) {
-			afterFunc({
-				args,
-				response: response as unknown as Response,
-			});
-			return response;
-		}
-
-		if (isPromise(response)) {
-			return Promise.resolve(response).then((resolvedResponse) => {
-				afterFunc({
-					args,
-					response: resolvedResponse as Response,
-				});
-				return resolvedResponse;
-			}) as Return;
-		}
-
-		afterFunc({
-			args,
-			response: response as unknown as Response,
-		});
-		return response;
-	} as Method<This, Args, Return>;
-}
-
-export function after<This = any, Response = unknown, Args extends unknown[] = unknown[]>(
-	config: AfterConfig<This, Response, Args>,
-) {
-	return function<Return = unknown>(
+export type AfterDecorator<This = any, Args extends unknown[] = unknown[]> = Dual<
+	<Return = unknown>(
 		value: Method<This, Args, Return>,
 		context: ClassMethodDecoratorContext<This, Method<This, Args, Return>>,
-	): Method<This, Args, Return> {
-		assertMethodDecorator("after", value, context);
-		return createAfterMethod(value, config);
-	};
+	) => Method<This, Args, Return>
+>;
+
+/** Runs `hook` (a function or the name of a method on the instance) after the decorated method. */
+export function after<This = any, Response = unknown, Args extends unknown[] = unknown[]>(
+	hook: AfterFunc<Response, Args> | keyof This,
+	options: AfterOptions = {},
+): AfterDecorator<This, Args> {
+	return methodDecorator("after", (value) =>
+		function(this: This, ...args: unknown[]): unknown {
+			const afterFunc = resolveCallable<This, unknown>(this, hook) as AfterFunc;
+			const response = value.apply(this, args);
+
+			if (options.wait && isPromise(response)) {
+				return response.then((resolved) => {
+					afterFunc({ args: args, response: resolved });
+					return resolved;
+				});
+			}
+
+			afterFunc({ args: args, response: response });
+			return response;
+		});
 }

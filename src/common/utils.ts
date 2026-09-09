@@ -2,10 +2,6 @@ export function isPromise(obj: unknown): obj is Promise<unknown> {
 	return Boolean(obj) && typeof (obj as Promise<unknown>).then === "function";
 }
 
-export function isWeakMapKey(value: unknown): value is object {
-	return (typeof value === "object" && value !== null) || typeof value === "function";
-}
-
 export function resolveCallable<This, Return>(
 	instance: This,
 	input: ((...args: any[]) => Return) | keyof This,

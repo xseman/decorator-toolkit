@@ -1,7 +1,8 @@
 # cache
 
-Cache a method result by key so repeated calls reuse the stored value instead of
-running the method again.
+Memoize a method per instance, keyed by its arguments. Works for async methods
+too: the promise itself is cached, so concurrent calls share one request, and a
+rejected promise is evicted so the next call retries.
 
 ## Import
 
@@ -9,16 +10,13 @@ running the method again.
 import { cache } from "decorator-toolkit/cache";
 ```
 
-For legacy TypeScript decorators, import from `decorator-toolkit/cache/legacy` or import `{ cache }` from `decorator-toolkit/legacy`.
-
 ## Signature
 
 ```ts
-cache<This, Value, Args>(
+cache<This, Args>(
 	config?: number | {
-		store?: CacheStore<Value>;
-		keyResolver?: keyof This | ((...args: Args) => string);
 		ttlMs?: number;
+		keyResolver?: keyof This | ((...args: Args) => string);
 	},
 )
 
@@ -35,7 +33,7 @@ class UserNames {
 		return id;
 	}
 
-	@cache<UserNames, string, [string]>({
+	@cache<UserNames, [string]>({
 		ttlMs: 5_000,
 		keyResolver: "cacheKey",
 	})
@@ -52,9 +50,11 @@ class UserNames {
 - Passing a number is shorthand for `ttlMs`.
 - By default, keys are derived from `JSON.stringify(args)` and stores are scoped
   per instance.
-- Prefer [cacheAsync](cache-async.md) for async methods.
+- Entries expire lazily: `ttlMs` is checked on read, no timers are kept.
+- For an argument-independent "run once" guard use [runOnce](run-once.md).
 
 ## Related
 
-- [cacheAsync](cache-async.md)
 - [delegate](delegate.md)
+- [lazy](lazy.md)
+- [runOnce](run-once.md)
