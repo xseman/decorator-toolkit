@@ -199,4 +199,16 @@ describe("after", () => {
 		const result = await new TestSubject().foo(42);
 		expect(result).toBe(42);
 	});
+
+	test("throws when the hook name does not resolve to a method", () => {
+		class TestSubject {
+			notAFunction = 42;
+
+			@after<TestSubject>("notAFunction")
+			foo(): void {
+			}
+		}
+
+		expect(() => new TestSubject().foo()).toThrow("Expected notAFunction to resolve to a function.");
+	});
 });

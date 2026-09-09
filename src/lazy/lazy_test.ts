@@ -210,4 +210,21 @@ describe("lazy", () => {
 		expect(aCount).toBe(1);
 		expect(bCount).toBe(1);
 	});
+
+	test("throws on a private getter", () => {
+		expect(() => {
+			class TestSubject {
+				@lazy
+				get #secret(): number {
+					return 1;
+				}
+
+				read(): number {
+					return this.#secret;
+				}
+			}
+
+			return TestSubject;
+		}).toThrow("@lazy does not support private hash getters.");
+	});
 });

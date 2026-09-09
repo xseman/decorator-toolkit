@@ -158,4 +158,20 @@ describe("cache", () => {
 		expect(await subject.foo()).toBe(2);
 		expect(subject.calls).toBe(2);
 	});
+
+	test("unbound calls share a single fallback store", () => {
+		class TestSubject {
+			@cache
+			foo(x: number): number {
+				calls += 1;
+				return x + calls;
+			}
+		}
+
+		let calls = 0;
+		const detached = TestSubject.prototype.foo;
+		expect(detached.call(undefined, 1)).toBe(2);
+		expect(detached.call(undefined, 1)).toBe(2);
+		expect(calls).toBe(1);
+	});
 });

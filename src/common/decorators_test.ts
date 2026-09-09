@@ -13,6 +13,7 @@ import { periodic } from "../periodic/periodic.js";
 import { readonly } from "../readonly/readonly.js";
 import { retry } from "../retry/retry.js";
 import { timeout } from "../timeout/timeout.js";
+import { legacyContext } from "./decorators.js";
 import { sleep } from "./utils.js";
 
 /** What TypeScript's `__decorate` helper does under `experimentalDecorators`. */
@@ -206,5 +207,34 @@ describe("legacy experimentalDecorators call form", () => {
 		}
 
 		expect(() => decorateMember(Subject.prototype, "tick", periodic(10))).toThrow("needs a class initializer");
+	});
+
+	test("guards reject members that are not methods, getters or classes", () => {
+		class Subject {
+			field = 1;
+
+			get value(): number {
+				return 1;
+			}
+		}
+
+		expect(() => decorateMember(Subject.prototype, "field", bind)).toThrow("@bind is applicable only on methods.");
+		expect(() => decorateMember(Subject.prototype, "field", dispose)).toThrow("@dispose is applicable only on methods.");
+		expect(() => decorateMember(Subject.prototype, "field", lazy)).toThrow("@lazy is applicable only on getters.");
+		expect(() => bindAll(42 as never)).toThrow("@bindAll is applicable only on classes.");
+	});
+
+	test("the synthesized context reports a class initializer as unavailable", () => {
+		const context = legacyContext("sample", "method", {}, "foo");
+
+		expect(context.kind).toBe("method");
+		expect(context.name).toBe("foo");
+		expect(context.static).toBe(false);
+		expect(context.access.has({ foo: 1 })).toBe(true);
+		expect(context.access.has({})).toBe(false);
+		expect(context.access.get({ foo: 1 })).toBe(1);
+		expect(() => context.addInitializer(() => undefined)).toThrow(
+			"@sample needs a class initializer, which is not available with experimentalDecorators.",
+		);
 	});
 });

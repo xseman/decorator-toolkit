@@ -202,4 +202,25 @@ describe("periodic", () => {
 			return TestSubject;
 		}).toThrow("@periodic: intervalMs must be a positive number.");
 	});
+
+	test("keeps ticking when onError itself throws", async () => {
+		let callCount = 0;
+
+		class TestSubject {
+			@periodic<TestSubject>({
+				intervalMs: 15,
+				onError: () => {
+					throw new Error("reporter is down");
+				},
+			})
+			tick(): void {
+				callCount += 1;
+				throw new Error("tick failed");
+			}
+		}
+
+		using _subject = new TestSubject() as TestSubject & Disposable;
+		await sleep(50);
+		expect(callCount).toBeGreaterThanOrEqual(2);
+	});
 });

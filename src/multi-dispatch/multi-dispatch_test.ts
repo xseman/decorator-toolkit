@@ -92,4 +92,9 @@ describe("multiDispatch", () => {
 		expect(await subject.foo()).toBe("fast");
 		expect(subject.counter).toBe(2);
 	});
+
+	test("throws for a non-positive dispatch count", () => {
+		expect(() => multiDispatch(0)).toThrow("@multiDispatch: dispatches must be a positive integer.");
+		expect(() => multiDispatch(1.5)).toThrow("@multiDispatch: dispatches must be a positive integer.");
+	});
 });
