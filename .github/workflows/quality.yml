@@ -7,7 +7,7 @@ on:
         paths:
             - "src/**"
             - "package.json"
-            - "tsconfig.json"
+            - "tsconfig*.json"
             - "dprint.json"
             - "bunfig.toml"
             - ".github/.release-config.json"
@@ -20,7 +20,7 @@ on:
         paths:
             - "src/**"
             - "package.json"
-            - "tsconfig.json"
+            - "tsconfig*.json"
             - "dprint.json"
             - "bunfig.toml"
             - ".github/.release-config.json"
@@ -56,6 +56,12 @@ jobs:
 
             - name: typecheck
               run: bun run typecheck
+
+            - name: typecheck tests
+              run: bun run typecheck:test
+
+            - name: build
+              run: bun run build
 
             - name: test
               run: bun run test
