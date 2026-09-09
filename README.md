@@ -119,6 +119,8 @@ import {
 } from "decorator-toolkit";
 
 class Session {
+	declare [Symbol.dispose]: () => void;
+
 	@readonly
 	accessor id = crypto.randomUUID();
 

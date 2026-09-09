@@ -30,6 +30,8 @@ periodic<This>(
 import { periodic } from "decorator-toolkit/periodic";
 
 class HealthMonitor {
+	declare [Symbol.dispose]: () => void;
+
 	status = "unknown";
 
 	@periodic<HealthMonitor>({ intervalMs: 5_000, immediate: true, onError: "report" })
@@ -55,6 +57,8 @@ class HealthMonitor {
 - `overlap: "skip"` drops a tick while the previous async run is still pending.
 - Errors go to `onError` and the interval keeps running; without `onError` they
   are swallowed.
+- Disposal is wired at run time, so declare `[Symbol.dispose]: () => void` on the
+  class to use the instance with `using`. See [dispose](dispose.md).
 - The timer is `unref`'d where supported, so it does not keep a Node process
   alive, but it does keep the instance reachable until disposed.
 - To poll a value into a field, assign it inside the method.

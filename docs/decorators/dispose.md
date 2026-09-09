@@ -26,6 +26,8 @@ dispose(config?: {
 import { dispose } from "decorator-toolkit/dispose";
 
 class DatabaseConnection {
+	declare [Symbol.dispose]: () => void;
+
 	@dispose
 	close(): void {
 		// called when the instance leaves the `using` block
@@ -44,6 +46,8 @@ class DatabaseConnection {
 import { dispose } from "decorator-toolkit/dispose";
 
 class ConnectionPool {
+	declare [Symbol.asyncDispose]: () => Promise<void>;
+
 	@dispose({ async: true })
 	async drain(): Promise<void> {
 		// called when the instance leaves the `await using` block
@@ -63,6 +67,8 @@ order they were declared (FIFO):
 
 ```ts
 class Service {
+	declare [Symbol.dispose]: () => void;
+
 	@dispose
 	closeCache(): void {/* ... */}
 
@@ -79,6 +85,9 @@ class Service {
 - `@dispose` and `@dispose()` both wire `Symbol.dispose` (sync).
 - Pass `{ async: true }` to wire `Symbol.asyncDispose` instead; use `await using` with such instances.
 - Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
+- The decorator wires the symbol at run time, so the type does not carry it. Declare
+  `declare [Symbol.dispose]: () => void` (or the async variant) on the class to use it
+  with `using`. `declare` is type-only and emits nothing.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
 - Under legacy `experimentalDecorators` the disposer is wired on the prototype
