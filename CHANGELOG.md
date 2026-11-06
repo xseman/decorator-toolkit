@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.1](https://github.com/xseman/decorator-toolkit/compare/v0.5.0...v0.5.1) (2026-11-06)
+
+
+### Documentation
+
+* make CLAUDE.md the source file and AGENTS.md a symlink ([7b3a4b0](https://github.com/xseman/decorator-toolkit/commit/7b3a4b048ee8b4504189bb8fecc9dd887a12f139))
+* rename CLAUDE.md to AGENTS.md ([0204cbe](https://github.com/xseman/decorator-toolkit/commit/0204cbe5dfe145742e773fda0df5d2b26b5ab945))
+
+
+### Maintenance
+
+* publish to npm with a trusted publisher ([7841bbd](https://github.com/xseman/decorator-toolkit/commit/7841bbd6c468ab8eae47eaf9a29de0a5d6270193))
+
 ## [0.5.0](https://github.com/xseman/decorator-toolkit/compare/v0.4.0...v0.5.0) (2026-09-09)
 
 
