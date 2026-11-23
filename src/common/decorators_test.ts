@@ -10,7 +10,6 @@ import { cache } from "../cache/cache.js";
 import { dispose } from "../dispose/dispose.js";
 import { lazy } from "../lazy/lazy.js";
 import { periodic } from "../periodic/periodic.js";
-import { readonly } from "../readonly/readonly.js";
 import { retry } from "../retry/retry.js";
 import { timeout } from "../timeout/timeout.js";
 import { legacyContext } from "./decorators.js";
@@ -134,29 +133,6 @@ describe("legacy experimentalDecorators call form", () => {
 		expect(new BoundFactory().who.call(undefined)).toBe("bound");
 	});
 
-	test("readonly makes a get/set accessor throw on assignment", () => {
-		class Subject {
-			#id = "a";
-
-			get id(): string {
-				return this.#id;
-			}
-
-			set id(value: string) {
-				this.#id = value;
-			}
-		}
-
-		decorateMember(Subject.prototype, "id", readonly);
-
-		const subject = new Subject();
-		expect(subject.id).toBe("a");
-		expect(() => {
-			subject.id = "b";
-		}).toThrow("Cannot assign to read only property 'id' of object '#<Subject>'");
-		expect(() => decorateMember(Subject.prototype, "constructor", readonly)).toThrow("@readonly is applicable only on accessors.");
-	});
-
 	test("lazy caches a getter per instance", () => {
 		let computed = 0;
 
@@ -177,7 +153,7 @@ describe("legacy experimentalDecorators call form", () => {
 		expect(computed).toBe(2);
 	});
 
-	test("dispose wires Symbol.dispose on the prototype in declaration order", () => {
+	test("dispose wires Symbol.dispose on the prototype in reverse declaration order", () => {
 		const order: string[] = [];
 
 		class Subject {
@@ -197,7 +173,7 @@ describe("legacy experimentalDecorators call form", () => {
 			using _subject = new Subject() as Subject & Disposable;
 		}
 
-		expect(order).toEqual(["a", "b"]);
+		expect(order).toEqual(["b", "a"]);
 	});
 
 	test("periodic throws a clear error", () => {

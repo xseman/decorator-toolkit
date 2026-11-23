@@ -33,7 +33,9 @@ export function bind(...args: unknown[]): unknown {
 				assertMethodDecorator("bind", value, context);
 
 				context.addInitializer(function(this: unknown): void {
-					(this as Record<PropertyKey, unknown>)[context.name] = (value as AnyFunction).bind(this);
+					// looked up on the instance so decorators stacked above `@bind` stay in the call path
+					const self = this as Record<PropertyKey, AnyFunction>;
+					self[context.name] = self[context.name]!.bind(this);
 				});
 			},
 			(_target, key, descriptor) => {

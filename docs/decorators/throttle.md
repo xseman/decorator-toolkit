@@ -36,6 +36,7 @@ class ScrollTracker {
 - The first call in a window runs immediately.
 - Calls inside the active window are dropped, not queued.
 - State is tracked per instance.
+- The window is a `performance.now()` timestamp, so no timer keeps the process alive.
 
 ## Related
 

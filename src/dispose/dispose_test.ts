@@ -5,6 +5,8 @@ import {
 	test,
 } from "bun:test";
 
+import { sleep } from "../common/utils.js";
+import { periodic } from "../periodic/periodic.js";
 import { dispose } from "./dispose.js";
 
 describe("dispose", () => {
@@ -76,7 +78,7 @@ describe("dispose", () => {
 		expect(disposed).toBe(true);
 	});
 
-	test("multiple @dispose methods all called in declaration order (FIFO)", () => {
+	test("multiple @dispose methods are all called", () => {
 		const calls: string[] = [];
 
 		class TestSubject {
@@ -99,7 +101,7 @@ describe("dispose", () => {
 		expect(calls).toHaveLength(2);
 	});
 
-	test("disposal order follows declaration order (FIFO)", () => {
+	test("disposal runs in reverse declaration order (LIFO)", () => {
 		const calls: string[] = [];
 
 		class TestSubject {
@@ -122,7 +124,7 @@ describe("dispose", () => {
 		const subject = new TestSubject();
 		(subject as any)[Symbol.dispose]();
 
-		expect(calls).toEqual(["alpha", "beta", "gamma"]);
+		expect(calls).toEqual(["gamma", "beta", "alpha"]);
 	});
 
 	test("supports factory form @dispose()", () => {
@@ -189,5 +191,129 @@ describe("dispose", () => {
 
 		(b as any)[Symbol.dispose]();
 		expect(log).toEqual(["A", "B"]);
+	});
+
+	test("a throwing disposer does not skip the remaining ones", async () => {
+		const calls: string[] = [];
+
+		class TestSubject {
+			@dispose
+			first(): void {
+				calls.push("first");
+			}
+
+			@dispose
+			second(): void {
+				throw new Error("second failed");
+			}
+		}
+
+		class AsyncSubject {
+			@dispose({ async: true })
+			async first(): Promise<void> {
+				calls.push("async first");
+			}
+
+			@dispose({ async: true })
+			async second(): Promise<void> {
+				throw new Error("async second failed");
+			}
+		}
+
+		expect(() => (new TestSubject() as any)[Symbol.dispose]()).toThrow("second failed");
+		await expect((new AsyncSubject() as any)[Symbol.asyncDispose]()).rejects.toThrow("async second failed");
+
+		expect(calls).toEqual(["first", "async first"]);
+	});
+
+	test("await using runs sync and async disposers as one stack, in reverse declaration order", async () => {
+		const calls: string[] = [];
+
+		class TestSubject {
+			@dispose
+			first(): void {
+				calls.push("first");
+			}
+
+			@dispose({ async: true })
+			async second(): Promise<void> {
+				calls.push("second");
+			}
+
+			@dispose
+			third(): void {
+				calls.push("third");
+			}
+		}
+
+		{
+			await using _subject = new TestSubject() as unknown as AsyncDisposable;
+		}
+
+		{
+			using _subject = new TestSubject() as unknown as Disposable;
+		}
+
+		expect(calls).toEqual(["third", "second", "first", "third", "first"]);
+	});
+
+	test("runs a disposer once when the class's own asyncDispose delegates to dispose", async () => {
+		const calls: string[] = [];
+
+		class TestSubject {
+			@dispose
+			close(): void {
+				calls.push("close");
+			}
+
+			[Symbol.dispose](): void {
+				calls.push("own sync");
+			}
+
+			async [Symbol.asyncDispose](): Promise<void> {
+				calls.push("own async");
+				this[Symbol.dispose]();
+			}
+		}
+
+		const subject = new TestSubject();
+		await subject[Symbol.asyncDispose]();
+		subject[Symbol.dispose]();
+
+		expect(calls).toEqual(["close", "own async", "own sync", "own sync"]);
+	});
+
+	test("await using also runs sync disposers and stops @periodic", async () => {
+		const calls: string[] = [];
+		let ticks = 0;
+
+		class TestSubject {
+			@dispose({ async: true })
+			async closeAsync(): Promise<void> {
+				calls.push("async");
+			}
+
+			@dispose
+			closeSync(): void {
+				calls.push("sync");
+			}
+
+			@periodic(5)
+			tick(): void {
+				ticks += 1;
+			}
+		}
+
+		{
+			await using _subject = new TestSubject() as unknown as AsyncDisposable;
+			await sleep(20);
+		}
+
+		const ticksAtDispose = ticks;
+		await sleep(20);
+
+		expect(calls).toEqual(["sync", "async"]);
+		expect(ticksAtDispose).toBeGreaterThan(0);
+		expect(ticks).toBe(ticksAtDispose);
 	});
 });

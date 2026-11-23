@@ -41,5 +41,5 @@ class Database {
 ## Related
 
 - [cache](cache.md)
-- [delegate](delegate.md)
+- [singleflight](singleflight.md)
 - [lazy](lazy.md)

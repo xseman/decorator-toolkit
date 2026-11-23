@@ -59,6 +59,5 @@ class PaymentsApi {
 ## Related
 
 - [circuitBreaker](circuit-breaker.md)
-- [multiDispatch](multi-dispatch.md)
 - [onError](on-error.md)
 - [timeout](timeout.md)

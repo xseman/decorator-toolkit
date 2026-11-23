@@ -31,7 +31,7 @@ import { onError } from "decorator-toolkit/on-error";
 import { timeout } from "decorator-toolkit/timeout";
 
 class PricingClient {
-	@onError<PricingClient, number, [string]>(() => 0) // fallback while open
+	@onError<PricingClient, Promise<number>, [string]>(async () => 0) // fallback while open
 	@circuitBreaker({ failures: 5, resetMs: 30_000 })
 	@timeout(2_000)
 	async price(sku: string): Promise<number> {

@@ -27,7 +27,7 @@ class ProfileLoader {
 		return Promise.resolve({ id: args[0], cached: true });
 	}
 
-	@onError<ProfileLoader, { id: string; cached: true; }, [string]>("recover")
+	@onError<ProfileLoader, Promise<{ id: string; cached: true; }>, [string]>("recover")
 	async load(id: string): Promise<{ id: string; cached: true; }> {
 		throw new Error(`profile:${id}:failed`);
 	}

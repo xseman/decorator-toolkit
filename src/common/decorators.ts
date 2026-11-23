@@ -119,16 +119,6 @@ export function assertClassDecorator(
 	}
 }
 
-export function assertAccessorDecorator(
-	decoratorName: string,
-	value: unknown,
-	context: RuntimeDecoratorContext,
-): void {
-	if (!isRuntimeDecoratorContext(context) || context.kind !== "accessor" || value === null || typeof value !== "object" || context.private) {
-		throw new Error(`@${decoratorName} is applicable only on accessors.`);
-	}
-}
-
 export function assertGetterDecorator(
 	decoratorName: string,
 	value: unknown,

@@ -24,8 +24,12 @@ export function concurrent<This, Args extends unknown[] = unknown[], Return = un
 export function concurrent(target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor;
 export function concurrent(limit?: number): ConcurrentDecorator;
 export function concurrent(...args: unknown[]): unknown {
-	return overloaded(args, (limit: number = 1) =>
-		methodDecorator<ConcurrentDecorator>("concurrent", (value) => {
+	return overloaded(args, (limit: number = 1) => {
+		if (!Number.isInteger(limit) || limit < 1) {
+			throw new Error("@concurrent: limit must be a positive integer.");
+		}
+
+		return methodDecorator<ConcurrentDecorator>("concurrent", (value) => {
 			// ponytail: O(n) shift; ring buffer if queues exceed ~10k
 			const slot = perInstance<State>(() => ({ running: 0, queue: [] }));
 
@@ -49,5 +53,6 @@ export function concurrent(...args: unknown[]): unknown {
 					drain(state);
 				});
 			};
-		}));
+		});
+	});
 }

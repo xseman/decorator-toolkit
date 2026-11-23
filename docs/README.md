@@ -12,23 +12,22 @@ TypeScript 5+, importable from the root package or from
 - [onError](decorators/on-error.md)
 - [retry](decorators/retry.md)
 - [timeout](decorators/timeout.md)
-- [multiDispatch](decorators/multi-dispatch.md)
 
 ### Concurrency and flow control
 
 - [cancelPrevious](decorators/cancel-previous.md)
 - [concurrent](decorators/concurrent.md)
 - [debounce](decorators/debounce.md)
-- [delay](decorators/delay.md)
 - [rateLimit](decorators/rate-limit.md)
 - [throttle](decorators/throttle.md)
 
 ### Caching and deduplication
 
+- [batch](decorators/batch.md)
 - [cache](decorators/cache.md)
-- [delegate](decorators/delegate.md)
 - [lazy](decorators/lazy.md)
 - [runOnce](decorators/run-once.md)
+- [singleflight](decorators/singleflight.md)
 
 ### Lifecycle and hooks
 
@@ -36,18 +35,15 @@ TypeScript 5+, importable from the root package or from
 - [before](decorators/before.md)
 - [bind](decorators/bind.md)
 - [bindAll](decorators/bind-all.md)
+- [deprecated](decorators/deprecated.md)
 - [dispose](decorators/dispose.md)
 - [execTime](decorators/exec-time.md)
 - [periodic](decorators/periodic.md)
 
-### Accessors
-
-- [readonly](decorators/readonly.md)
-
 ## Notes
 
 - Method decorators apply to methods only; `bindAll` applies to classes;
-  `readonly` decorates `accessor` members; `lazy` decorates `get` accessors.
+  `lazy` decorates `get` accessors.
 - Private class members are not supported.
 - Decorators that need no configuration accept both `@decorator` and
   `@decorator()`.
@@ -56,5 +52,5 @@ TypeScript 5+, importable from the root package or from
 - `dispose` and `periodic` use `Symbol.dispose`; trigger them with `using`.
 - Every decorator also accepts the legacy `experimentalDecorators` call form
   (TypeORM, NestJS), with the same imports. Exceptions: `periodic` needs a class
-  initializer and is unavailable there; `readonly` and `lazy` then decorate
-  get/set accessors; `bind` binds on first access; `dispose` wires the prototype.
+  initializer and is unavailable there; `bind` binds on first access; `dispose`
+  wires the prototype.
