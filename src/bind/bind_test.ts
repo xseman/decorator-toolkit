@@ -116,4 +116,31 @@ describe("bind", () => {
 		expect(detached()).toBe(9);
 		expect(calls).toEqual(["foo"]);
 	});
+
+	test("keeps a decorator stacked above @bind in the call path", () => {
+		const calls: string[] = [];
+
+		function trace(value: (this: any) => number): (this: any) => number {
+			return function(this: any): number {
+				calls.push("trace");
+				return value.call(this);
+			};
+		}
+
+		class TestSubject {
+			constructor(private readonly value: number) {}
+
+			@trace
+			@bind
+			foo(): number {
+				return this.value;
+			}
+		}
+
+		const subject = new TestSubject(9);
+		const detached = subject.foo;
+
+		expect(detached()).toBe(9);
+		expect(calls).toEqual(["trace"]);
+	});
 });

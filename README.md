@@ -13,8 +13,8 @@
 
 The patterns you know from Polly, resilience4j, tenacity or Go's `sync` and
 `singleflight`, as one-line decorators: retry, timeout, circuit breaker,
-fallback, rate limit, bulkhead, memoize, singleflight, once, debounce,
-throttle. No runtime dependencies. Works in browsers, Node 22+, Bun and Deno.
+fallback, rate limit, bulkhead, memoize, singleflight, batch, once,
+debounce, throttle. No runtime dependencies. Works in browsers, Node 22+, Bun and Deno.
 
 ## Installation
 
@@ -46,8 +46,8 @@ from `"lib": ["DOM", ...]`; a Node project needs `@types/node`, listed in
 package automatically.
 
 > [!NOTE]
-> Method decorators apply to methods only, `bindAll` applies to classes,
-> `readonly` applies to `accessor` members and `lazy` to `get` accessors.
+> Method decorators apply to methods only, `bindAll` applies to classes
+> and `lazy` to `get` accessors.
 > Private members are not supported. Decorators that need no configuration
 > accept both `@decorator` and `@decorator()`.
 
@@ -62,7 +62,7 @@ import {
 } from "decorator-toolkit";
 
 class PricingClient {
-	@onError<PricingClient, number, [string]>(() => 0) // fallback
+	@onError<PricingClient, Promise<number>, [string]>(async () => 0) // fallback
 	@circuitBreaker({ failures: 5, resetMs: 30_000 }) // stop hammering a dead service
 	@retry({ retries: 3, delay: (attempt) => 200 * 2 ** attempt }) // exponential backoff
 	@timeout(2_000) // DOMException "TimeoutError"
@@ -77,11 +77,12 @@ class PricingClient {
 
 ```ts
 import {
+	batch,
 	cache,
 	concurrent,
-	delegate,
 	rateLimit,
 	runOnce,
+	singleflight,
 } from "decorator-toolkit";
 
 class Directory {
@@ -93,9 +94,14 @@ class Directory {
 		return `user:${id}`;
 	}
 
-	@delegate // singleflight: identical concurrent calls share one request
+	@singleflight // identical concurrent calls share one request
 	async load(id: string): Promise<object> {
 		return fetch(`/users/${id}`).then((r) => r.json());
+	}
+
+	@batch // calls from one tick become one request
+	async loadMany(ids: string[]): Promise<object[]> {
+		return fetch(`/users?ids=${ids.join(",")}`).then((r) => r.json());
 	}
 
 	@concurrent(4) // bulkhead: at most 4 in flight, the rest queue
@@ -115,14 +121,10 @@ import {
 	dispose,
 	lazy,
 	periodic,
-	readonly,
 } from "decorator-toolkit";
 
 class Session {
 	declare [Symbol.dispose]: () => void;
-
-	@readonly
-	accessor id = crypto.randomUUID();
 
 	@lazy
 	get config(): object {
@@ -162,8 +164,7 @@ switches the whole compilation to the old decorator signature. Every decorator
 here detects that call form at runtime, so the same imports and the same
 `@retry(3)` work in both worlds. Differences under `experimentalDecorators`:
 `bind` binds on first access instead of at construction, `dispose` wires the
-prototype, `readonly` and `lazy` decorate get/set accessors, and `periodic` is
-unavailable because it needs a class initializer.
+prototype, and `periodic` is unavailable because it needs a class initializer.
 
 ## Available Decorators
 
@@ -173,17 +174,16 @@ unavailable because it needs a class initializer.
 | Timeout         | [timeout](docs/decorators/timeout.md)                | Rejects slow async methods with a `DOMException` named `TimeoutError`      |
 | Circuit breaker | [circuitBreaker](docs/decorators/circuit-breaker.md) | Fails fast after N consecutive failures, probes again after a cooldown     |
 | Fallback        | [onError](docs/decorators/on-error.md)               | Routes thrown errors and rejections to a handler whose result is returned  |
-| Hedging         | [multiDispatch](docs/decorators/multi-dispatch.md)   | Starts N identical async calls and resolves with the first success         |
 | Rate limit      | [rateLimit](docs/decorators/rate-limit.md)           | Refuses calls above a count per sliding window, per instance or key        |
 | Bulkhead        | [concurrent](docs/decorators/concurrent.md)          | Limits in-flight async calls per instance; extra calls queue in order      |
-| Memoize         | [cache](docs/decorators/cache.md)                    | Caches results by arguments with an optional TTL; evicts rejected promises |
-| Singleflight    | [delegate](docs/decorators/delegate.md)              | Shares one in-flight async call across callers with the same key           |
+| Memoize         | [cache](docs/decorators/cache.md)                    | Caches results by arguments with optional TTL and size; `clearCache` drops |
+| Singleflight    | [singleflight](docs/decorators/singleflight.md)      | Shares one in-flight async call across callers with the same key           |
+| Batch           | [batch](docs/decorators/batch.md)                    | Merges array calls made in one window into a single call                   |
 | Once            | [runOnce](docs/decorators/run-once.md)               | Runs once per instance and returns the first result to later calls         |
 | Lazy            | [lazy](docs/decorators/lazy.md)                      | Computes a getter once per instance                                        |
 | Debounce        | [debounce](docs/decorators/debounce.md)              | Coalesces rapid calls into one later execution                             |
 | Throttle        | [throttle](docs/decorators/throttle.md)              | Runs at most once per window; calls in between are dropped                 |
 | Latest wins     | [cancelPrevious](docs/decorators/cancel-previous.md) | Rejects the previous pending call with a `DOMException` named `AbortError` |
-| Delay           | [delay](docs/decorators/delay.md)                    | Schedules the call after a fixed delay                                     |
 | Periodic        | [periodic](docs/decorators/periodic.md)              | Calls the method on an interval until the instance is disposed             |
 | Dispose         | [dispose](docs/decorators/dispose.md)                | Wires a method to `Symbol.dispose` / `Symbol.asyncDispose` for `using`     |
 | Hooks           | [before](docs/decorators/before.md)                  | Runs a hook before the method                                              |
@@ -191,7 +191,7 @@ unavailable because it needs a class initializer.
 |                 | [execTime](docs/decorators/exec-time.md)             | Reports execution time via `performance.now()`                             |
 | Binding         | [bind](docs/decorators/bind.md)                      | Binds a method to its instance during initialization                       |
 |                 | [bindAll](docs/decorators/bind-all.md)               | Binds all methods declared on a class                                      |
-| Readonly        | [readonly](docs/decorators/readonly.md)              | Makes an `accessor` write-protected                                        |
+| Deprecation     | [deprecated](docs/decorators/deprecated.md)          | Warns once that a method is deprecated, then calls it                      |
 
 ## Documentation
 

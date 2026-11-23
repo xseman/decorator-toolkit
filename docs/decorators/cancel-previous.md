@@ -56,6 +56,6 @@ await second;
 
 ## Related
 
-- [delegate](delegate.md)
+- [singleflight](singleflight.md)
 - [concurrent](concurrent.md)
 - [timeout](timeout.md)

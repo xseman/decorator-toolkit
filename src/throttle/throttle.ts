@@ -15,18 +15,16 @@ export type ThrottleDecorator = Dual<
 /** Runs the method at most once per `delayMs`; calls in between are dropped, as is the return value. */
 export function throttle(delayMs: number): ThrottleDecorator {
 	return methodDecorator("throttle", (value) => {
-		const slot = perInstance(() => ({ throttled: false }));
+		const slot = perInstance(() => ({ openAt: 0 }));
 
 		return function(this: unknown, ...args: unknown[]): void {
 			const state = slot(this);
-			if (state.throttled) {
+			const now = performance.now();
+			if (now < state.openAt) {
 				return;
 			}
 
-			state.throttled = true;
-			setTimeout(() => {
-				state.throttled = false;
-			}, delayMs);
+			state.openAt = now + delayMs;
 			value.apply(this, args);
 		};
 	});

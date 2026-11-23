@@ -62,8 +62,9 @@ class ConnectionPool {
 
 ### Composing multiple disposal methods
 
-Multiple `@dispose` decorators on the same class all run during disposal in the
-order they were declared (FIFO):
+Multiple `@dispose` decorators on the same class all run during disposal in
+reverse declaration order (LIFO), like stacked `using` declarations and
+`DisposableStack`, so what was set up last is torn down first:
 
 ```ts
 class Service {
@@ -76,7 +77,7 @@ class Service {
 	closeDatabase(): void {/* ... */}
 }
 
-// on disposal: closeCache() then closeDatabase()
+// on disposal: closeDatabase() then closeCache()
 ```
 
 ## Notes
@@ -84,16 +85,20 @@ class Service {
 - `dispose` is a method decorator.
 - `@dispose` and `@dispose()` both wire `Symbol.dispose` (sync).
 - Pass `{ async: true }` to wire `Symbol.asyncDispose` instead; use `await using` with such instances.
-- Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal.
+- Multiple `@dispose` methods on one class compose: all decorated methods are called during disposal,
+  even when one of them throws. If several throw, the error of the earliest declared disposer that threw propagates.
 - The decorator wires the symbol at run time, so the type does not carry it. Declare
   `declare [Symbol.dispose]: () => void` (or the async variant) on the class to use it
   with `using`. `declare` is type-only and emits nothing.
+- Each decorated method runs at most once per instance through the dispose symbols; disposing again is a no-op.
 - The decorated method remains callable directly in addition to being wired to the dispose symbol.
 - Private methods are not supported.
 - Under legacy `experimentalDecorators` the disposer is wired on the prototype
   instead of on each instance.
 - Requires TypeScript 5.2+ and a runtime with `Symbol.dispose` / `Symbol.asyncDispose` (Node 22+, Bun, current browsers).
-- [periodic](periodic.md) registers its own disposer the same way, so `using` also stops timers.
+- A class may mix sync and `{ async: true }` disposers: `await using` runs all of them as one stack in
+  reverse declaration order, `using` runs only the sync ones.
+- [periodic](periodic.md) registers its own disposer the same way, so `using` and `await using` also stop timers.
 
 ## Related
 

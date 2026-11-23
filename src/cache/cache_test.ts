@@ -6,7 +6,10 @@ import {
 } from "bun:test";
 
 import { sleep } from "../common/utils.js";
-import { cache } from "./cache.js";
+import {
+	cache,
+	clearCache,
+} from "./cache.js";
 
 describe("cache", () => {
 	test("caches method results and expires entries", async () => {
@@ -173,5 +176,137 @@ describe("cache", () => {
 		expect(detached.call(undefined, 1)).toBe(2);
 		expect(detached.call(undefined, 1)).toBe(2);
 		expect(calls).toBe(1);
+	});
+
+	test("keeps undefined, null, NaN and bigint arguments apart", () => {
+		let calls = 0;
+
+		class TestSubject {
+			@cache
+			id(value: unknown): unknown {
+				calls += 1;
+				return value;
+			}
+		}
+
+		const subject = new TestSubject();
+		const results = [undefined, null, Number.NaN, 1n, 1, "1", undefined, Number.NaN, 1n].map((value) => subject.id(value));
+
+		expect(results).toEqual([undefined, null, Number.NaN, 1n, 1, "1", undefined, Number.NaN, 1n]);
+		expect(calls).toBe(6);
+	});
+
+	test("shares an in-flight promise even when ttl is shorter than the call", async () => {
+		let calls = 0;
+
+		class TestSubject {
+			@cache(5)
+			async load(id: number): Promise<number> {
+				calls += 1;
+				await sleep(30);
+				return id;
+			}
+		}
+
+		const subject = new TestSubject();
+		const first = subject.load(1);
+		await sleep(15);
+		const second = subject.load(1);
+		await first;
+		await sleep(15);
+		await subject.load(1);
+
+		expect(second).toBe(first);
+		expect(calls).toBe(2);
+	});
+
+	test("max evicts the least recently used key", () => {
+		const calls: number[] = [];
+
+		class TestSubject {
+			@cache({ max: 1 })
+			last(id: number): number {
+				calls.push(id);
+				return id;
+			}
+
+			@cache({ max: 2 })
+			recent(id: number): number {
+				calls.push(id * 10);
+				return id;
+			}
+		}
+
+		const subject = new TestSubject();
+		[1, 1, 2, 1].forEach((id) => subject.last(id));
+		[1, 2, 1, 3, 1, 2].forEach((id) => subject.recent(id));
+
+		expect(calls).toEqual([1, 2, 1, 10, 20, 30, 20]);
+		expect(() => cache({ max: 0 })).not.toThrow();
+		expect(() => {
+			class Invalid {
+				@cache({ max: 0 })
+				foo(): void {}
+			}
+
+			return Invalid;
+		}).toThrow("@cache: max must be a positive integer.");
+	});
+
+	test("clearCache drops one method or all of them, on that instance only", async () => {
+		let calls = 0;
+
+		class TestSubject {
+			@cache
+			one(): number {
+				return calls += 1;
+			}
+
+			@cache
+			async two(): Promise<number> {
+				await sleep(5);
+				return calls += 1;
+			}
+
+			@cache
+			static shared(): number {
+				return calls += 1;
+			}
+		}
+
+		const subject = new TestSubject();
+		const other = new TestSubject();
+		const before = [subject.one(), await subject.two(), other.one(), TestSubject.shared()];
+
+		clearCache(subject, "one");
+		const afterOne = [subject.one(), await subject.two(), other.one()];
+		clearCache(subject);
+		clearCache(TestSubject);
+		const afterAll = [subject.one(), await subject.two(), other.one(), TestSubject.shared()];
+
+		expect(before).toEqual([1, 2, 3, 4]);
+		expect(afterOne).toEqual([5, 2, 3]);
+		expect(afterAll).toEqual([6, 7, 3, 8]);
+	});
+
+	test("a call in flight during clearCache is not stored again", async () => {
+		let calls = 0;
+
+		class TestSubject {
+			@cache
+			async load(): Promise<number> {
+				calls += 1;
+				await sleep(10);
+				return calls;
+			}
+		}
+
+		const subject = new TestSubject();
+		const stale = subject.load();
+		clearCache(subject);
+		const fresh = subject.load();
+
+		expect(await Promise.all([stale, fresh, subject.load()])).toEqual([2, 2, 2]);
+		expect(fresh).not.toBe(stale);
 	});
 });

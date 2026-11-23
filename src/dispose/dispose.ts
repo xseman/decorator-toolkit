@@ -16,7 +16,7 @@ export type DisposeDecorator = Dual<(value: Method<any>, context: ClassMethodDec
 
 /**
  * Wires the method to `Symbol.dispose` so `using` calls it. Multiple disposers run
- * in declaration order. Legacy decorators wire the prototype instead of each instance.
+ * in reverse declaration order. Legacy decorators wire the prototype instead of each instance.
  */
 export function dispose(value: Method<any>, context: ClassMethodDecoratorContext): void;
 export function dispose(target: object, key: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor;

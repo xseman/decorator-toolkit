@@ -5,27 +5,27 @@ import {
 } from "bun:test";
 
 import { sleep } from "../common/utils.js";
-import { delegate } from "./delegate.js";
+import { singleflight } from "./singleflight.js";
 
-describe("delegate", () => {
+describe("singleflight", () => {
 	test("throws when used on a field", () => {
-		const invalidDelegate: any = delegate;
+		const invalidSingleflight: any = singleflight;
 
 		expect(() => {
 			class TestSubject {
-				@invalidDelegate
+				@invalidSingleflight
 				boo = "nope";
 			}
 
 			return TestSubject;
-		}).toThrow("@delegate is applicable only on methods.");
+		}).toThrow("@singleflight is applicable only on methods.");
 	});
 
-	test("delegates concurrent invocations with the same key", async () => {
+	test("shares concurrent invocations with the same key", async () => {
 		let counter = 0;
 
 		class TestSubject {
-			@delegate
+			@singleflight
 			async foo(): Promise<number> {
 				counter += 1;
 				await sleep(20);
@@ -42,12 +42,12 @@ describe("delegate", () => {
 		expect(counter).toBe(1);
 	});
 
-	test("delegates only until the shared promise settles", async () => {
+	test("shares only until the shared promise settles", async () => {
 		const timestampBefore = Date.now();
 		let counter = 0;
 
 		class TestSubject {
-			@delegate()
+			@singleflight()
 			async foo(): Promise<number> {
 				counter += 1;
 				await sleep(20);
@@ -76,7 +76,7 @@ describe("delegate", () => {
 		let counter = 0;
 
 		class TestSubject {
-			@delegate()
+			@singleflight()
 			async foo(x: string): Promise<string> {
 				counter += 1;
 				await sleep(20);
@@ -97,7 +97,7 @@ describe("delegate", () => {
 		let counter = 0;
 
 		class ManyArgs {
-			@delegate()
+			@singleflight()
 			async foo(...args: number[]): Promise<number> {
 				counter += 1;
 				await sleep(20);
@@ -115,7 +115,7 @@ describe("delegate", () => {
 		expect(counter).toBe(2);
 
 		class CustomKey {
-			@delegate((a: number, b: number) => `${a}_${b}`)
+			@singleflight((a: number, b: number) => `${a}_${b}`)
 			async foo(a: number, b: number): Promise<number> {
 				counter += 1;
 				await sleep(20);
@@ -139,12 +139,46 @@ describe("delegate", () => {
 				return Promise.resolve(2);
 			}
 
-			@delegate()
+			@singleflight()
 			static async ex1(): Promise<number> {
 				return Example.ex2();
 			}
 		}
 
 		expect(await Example.ex1()).toBe(2);
+	});
+
+	test("turns a synchronous throw into a rejection", async () => {
+		class TestSubject {
+			@singleflight
+			foo(): Promise<number> {
+				throw new Error("sync failure");
+			}
+		}
+
+		const subject = new TestSubject();
+		const first = subject.foo();
+		const second = subject.foo();
+
+		expect(second).toBe(first);
+		await expect(first).rejects.toThrow("sync failure");
+	});
+
+	test("keeps undefined and null arguments apart", async () => {
+		let calls = 0;
+
+		class TestSubject {
+			@singleflight
+			async foo(value: unknown): Promise<unknown> {
+				calls += 1;
+				return value;
+			}
+		}
+
+		const subject = new TestSubject();
+		const results = await Promise.all([subject.foo(undefined), subject.foo(null), subject.foo(undefined)]);
+
+		expect(results).toEqual([undefined, null, undefined]);
+		expect(calls).toBe(2);
 	});
 });

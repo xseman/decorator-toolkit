@@ -45,8 +45,9 @@ clickHandler();
 - Static methods are also supported.
 - Under legacy `experimentalDecorators` the method is bound lazily on first
   access instead of at construction.
-- If you stack it with other method decorators, place `@bind` above the other
-  decorators when you want the final decorated method to be bound.
+- Stacking order does not matter: the final decorated method is bound, wherever
+  `@bind` sits. Under legacy `experimentalDecorators` `@bind` must be the
+  topmost decorator.
 
 ## Related
 

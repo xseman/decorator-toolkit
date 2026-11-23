@@ -143,4 +143,10 @@ describe("concurrent", () => {
 		expect(seconds).toBeGreaterThanOrEqual(0.5);
 		expect(seconds).toBeLessThan(0.7);
 	});
+
+	test("rejects a limit that would never start a call", () => {
+		expect(() => concurrent(0)).toThrow("@concurrent: limit must be a positive integer.");
+		expect(() => concurrent(Number.NaN)).toThrow("@concurrent: limit must be a positive integer.");
+		expect(() => concurrent(1.5)).toThrow("@concurrent: limit must be a positive integer.");
+	});
 });

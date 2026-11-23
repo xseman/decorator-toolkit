@@ -7,8 +7,8 @@ import {
 
 import { sleep } from "../common/utils.js";
 import {
-	type ExactTimeReportData,
 	execTime,
+	type ExecTimeReportData,
 } from "./exec-time.js";
 
 describe("exec-time", () => {
@@ -26,8 +26,8 @@ describe("exec-time", () => {
 	});
 
 	test("reports sync method execution", () => {
-		const reports: Array<ExactTimeReportData<string, [string]>> = [];
-		const reporter = (data: ExactTimeReportData<string, [string]>): void => {
+		const reports: Array<ExecTimeReportData<string, [string]>> = [];
+		const reporter = (data: ExecTimeReportData<string, [string]>): void => {
 			reports.push(data);
 		};
 
@@ -48,8 +48,8 @@ describe("exec-time", () => {
 	});
 
 	test("reports async method execution", async () => {
-		const reports: Array<ExactTimeReportData<string, [string]>> = [];
-		const reporter = (data: ExactTimeReportData<string, [string]>): void => {
+		const reports: Array<ExecTimeReportData<string, [string]>> = [];
+		const reporter = (data: ExecTimeReportData<string, [string]>): void => {
 			reports.push(data);
 		};
 
@@ -105,10 +105,10 @@ describe("exec-time", () => {
 	});
 
 	test("uses a named reporter", async () => {
-		const reports: Array<ExactTimeReportData<string, [string]>> = [];
+		const reports: Array<ExecTimeReportData<string, [string]>> = [];
 
 		class TestSubject {
-			report(data: ExactTimeReportData<string, [string]>): void {
+			report(data: ExecTimeReportData<string, [string]>): void {
 				reports.push(data);
 			}
 
@@ -124,5 +124,34 @@ describe("exec-time", () => {
 		expect(reports).toHaveLength(1);
 		expect(reports[0].args).toEqual(["a"]);
 		expect(reports[0].result).toBe("ab");
+	});
+
+	test("reports a call that throws or rejects, then rethrows", async () => {
+		const reports: ExecTimeReportData[] = [];
+		const reporter = (data: ExecTimeReportData): void => {
+			reports.push(data);
+		};
+
+		class TestSubject {
+			@execTime(reporter)
+			syncFailure(): void {
+				throw new Error("sync failure");
+			}
+
+			@execTime(reporter)
+			async asyncFailure(): Promise<void> {
+				throw new Error("async failure");
+			}
+		}
+
+		const subject = new TestSubject();
+		expect(() => subject.syncFailure()).toThrow("sync failure");
+		await expect(subject.asyncFailure()).rejects.toThrow("async failure");
+
+		expect(reports).toHaveLength(2);
+		expect((reports[0].error as Error).message).toBe("sync failure");
+		expect((reports[1].error as Error).message).toBe("async failure");
+		expect("result" in reports[0]).toBe(false);
+		expect(reports[1].execTime).toBeGreaterThanOrEqual(0);
 	});
 });

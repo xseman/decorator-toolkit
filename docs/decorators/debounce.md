@@ -40,5 +40,4 @@ class SearchBox {
 
 ## Related
 
-- [delay](delay.md)
 - [throttle](throttle.md)

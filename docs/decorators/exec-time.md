@@ -15,7 +15,8 @@ import { execTime } from "decorator-toolkit/exec-time";
 execTime<This, Result, Args>(
 	reporter?: keyof This | ((data: {
 		args: Args;
-		result: Result;
+		result?: Result;
+		error?: unknown;
 		execTime: number;
 	}) => unknown),
 )
@@ -29,7 +30,7 @@ execTime<This, Result, Args>(
 import { execTime } from "decorator-toolkit/exec-time";
 
 class ReportsService {
-	record(data: { execTime: number; result: string; }): void {
+	record(data: { execTime: number; result?: string; }): void {
 		console.info(`report:${data.result}:${data.execTime}`);
 	}
 
@@ -48,6 +49,8 @@ class ReportsService {
   are supported.
 - The reporter receives `args`, the final `result`, and `execTime` in
   milliseconds.
+- A call that throws or rejects is reported too, with `error` instead of
+  `result` (check `"error" in data`), and the error is then rethrown.
 - Without a reporter, the decorator logs the elapsed time with `console.info`.
 
 ## Related
